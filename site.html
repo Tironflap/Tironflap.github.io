@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        /* Глобальный шрифт для всей страницы */
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            margin-top: 20px;
+            font-family: "Roboto", sans-serif;
+            border-radius: 5px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        /* Скругление угловых ячеек */
+        th:first-child {
+            border-top-left-radius: 5px;
+        }
+        th:last-child {
+            border-top-right-radius: 5px;
+        }
+        tr:last-child td:first-child {
+            border-bottom-left-radius: 5px;
+        }
+        tr:last-child td:last-child {
+            border-bottom-right-radius: 5px;
+        }
+        .filters {
+            margin-bottom: 20px;
+            font-family: "Verdana", sans-serif;
+        }
+        .filters label {
+            margin-right: 10px;
+        }
+        .filters select {
+            margin-right: 20px;
+            padding: 5px;
+            font-family: inherit;
+            border-radius: 5px;
+        }
+        .footer {
+            margin-top: 10px;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .footer a {
+            color: #000000;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        /* Стили для кнопки настроек */
+        .settings-btn {
+            padding: 5px 10px;
+            font-family: "Verdana", sans-serif;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        /* Стили для модального окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 300px;
+            text-align: center;
+            font-family: "Verdana", sans-serif;
+        }
+        .modal-content button {
+            margin: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .close-btn {
+            background-color: #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="filters">
+        <label>День: <select id="dayFilter"><option value="">Все</option></select></label>
+        <label>Класс: <select id="classFilter"><option value="">Все</option></select></label>
+        <label>Кабинет: <select id="roomFilter"><option value="">Все</option></select></label>
+        <button class="settings-btn" onclick="openSettings()">Настройки</button>
+    </div>
+    <div id="tableContainer"></div>
+    <div class="footer">
+        <a href="https://t.me/Digital_sch_Helper_bot" target="_blank">@Digital_sch_Helper_bot</a>
+    </div>
+
+    <!-- Модальное окно -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h3>Настройки</h3>
+            <button onclick="changeBackground('black')">Чёрный фон</button>
+            <button onclick="changeBackground('white')">Белый фон</button>
+            <button onclick="window.open('https://t.me/DH_Helper', '_blank')">Связаться с разработчиком</button>
+            <button class="close-btn" onclick="closeSettings()">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        let originalData = []; // Храним исходные данные
+
+        // Определяем правильный порядок дней недели
+        const dayOrder = [
+            "Понедельник",
+            "Вторник",
+            "Среда",
+            "Четверг",
+            "Пятница",
+            "Суббота"
+        ];
+
+        // Определяем порядок классов
+        const classOrder = [
+            "7Э", "7Ю", "7Я",
+            "8Э", "8Ю", "8Я",
+            "9Э", "9Ю",
+            "10Э", "10Ю",
+            "11Я"
+        ];
+
+        // Функция нормализации данных
+        function normalizeData(rawData) {
+            if (!rawData || !rawData.data || !Array.isArray(rawData.data)) {
+                console.error('Данные не содержат массив в поле data или пусты:', rawData);
+                return [];
+            }
+
+            const data = rawData.data;
+            if (data.length === 0) {
+                console.warn('Массив data пуст');
+                return [];
+            }
+
+            const allKeys = new Set();
+            data.forEach(item => {
+                if (item && typeof item === 'object' && !Array.isArray(item) && item !== null) {
+                    Object.keys(item).forEach(key => allKeys.add(key));
+                }
+            });
+
+            return data.map(item => {
+                if (!item || typeof item !== 'object' || Array.isArray(item) || item === null) {
+                    return {};
+                }
+                const normalizedItem = {};
+                allKeys.forEach(key => {
+                    if (key === 'day') {
+                        normalizedItem['день'] = item[key] !== undefined ? String(item[key]).trim() : '';
+                    } else if (key === 'class') {
+                        normalizedItem['класс'] = item[key] !== undefined ? String(item[key]).trim() : '';
+                    } else {
+                        normalizedItem[key] = item[key] !== undefined ? String(item[key]).trim() : '';
+                    }
+                });
+                return normalizedItem;
+            });
+        }
+
+        // Функция создания таблицы
+        function createTable(data) {
+            const container = document.getElementById('tableContainer');
+            container.innerHTML = ''; // Очищаем предыдущую таблицу
+
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                container.textContent = 'Нет данных для отображения после фильтрации';
+                console.log('Отфильтрованные данные:', data);
+                return;
+            }
+
+            if (!data[0] || typeof data[0] !== 'object' || data[0] === null) {
+                container.textContent = 'Данные некорректны';
+                return;
+            }
+
+            let table = document.createElement('table');
+            let thead = document.createElement('thead');
+            let headerRow = document.createElement('tr');
+            let headers = Object.keys(data[0]);
+            
+            headers.forEach(header => {
+                let th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            let tbody = document.createElement('tbody');
+            data.forEach(item => {
+                let row = document.createElement('tr');
+                headers.forEach(header => {
+                    let td = document.createElement('td');
+                    td.textContent = item[header] !== undefined ? item[header] : '';
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+
+            container.appendChild(table);
+        }
+
+        // Функция заполнения фильтров
+        function populateFilters(data) {
+            const dayFilter = document.getElementById('dayFilter');
+            const classFilter = document.getElementById('classFilter');
+            const roomFilter = document.getElementById('roomFilter');
+
+            // Уникальные дни с сортировкой по dayOrder
+            const uniqueDays = [...new Set(data.map(item => item['день']))];
+            const days = uniqueDays.sort((a, b) => {
+                const indexA = dayOrder.indexOf(a);
+                const indexB = dayOrder.indexOf(b);
+                return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+            });
+
+            // Уникальные классы с сортировкой по classOrder
+            const uniqueClasses = [...new Set(data.map(item => item['класс']))];
+            const classes = uniqueClasses.sort((a, b) => {
+                const indexA = classOrder.indexOf(a);
+                const indexB = classOrder.indexOf(b);
+                return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+            });
+
+            // Уникальные кабинеты с сортировкой по алфавит
+            const uniqueRooms = [...new Set(data.map(item => item['кабинет']))];
+            const rooms = uniqueRooms.filter(room => room !== '').sort();
+
+            console.log('Уникальные кабинеты:', uniqueRooms);
+
+            days.forEach(day => {
+                let option = document.createElement('option');
+                option.value = day;
+                option.textContent = day;
+                dayFilter.appendChild(option);
+            });
+
+            classes.forEach(cls => {
+                let option = document.createElement('option');
+                option.value = cls;
+                option.textContent = cls;
+                classFilter.appendChild(option);
+            });
+
+            rooms.forEach(room => {
+                let option = document.createElement('option');
+                option.value = room;
+                option.textContent = room;
+                roomFilter.appendChild(option);
+            });
+        }
+
+        // Функция фильтрации данных
+        function filterData() {
+            const dayFilter = document.getElementById('dayFilter').value;
+            const classFilter = document.getElementById('classFilter').value;
+            const roomFilter = document.getElementById('roomFilter').value;
+
+            let filteredData = [...originalData];
+
+            console.log('Применяемые фильтры:', { dayFilter, classFilter, roomFilter });
+
+            if (dayFilter) {
+                filteredData = filteredData.filter(item => item['день'] === dayFilter);
+                console.log('После фильтра по дню:', filteredData);
+            }
+            if (classFilter) {
+                filteredData = filteredData.filter(item => item['класс'] === classFilter);
+                console.log('После фильтра по классу:', filteredData);
+            }
+            if (roomFilter) {
+                filteredData = filteredData.filter(item => item['кабинет'] === roomFilter);
+                console.log('После фильтра по кабинету:', filteredData);
+            }
+
+            createTable(filteredData);
+        }
+
+        // Функции для модального окна
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function changeBackground(color) {
+            // Сохраняем выбранный цвет в localStorage
+            localStorage.setItem('backgroundColor', color);
+            
+            document.body.style.backgroundColor = color;
+            if (color === 'black') {
+                // Чёрный фон: белый текст и границы
+                document.body.style.color = 'white';
+                document.querySelector('.modal-content').style.backgroundColor = '#111';
+                document.querySelector('.modal-content').style.color = 'white';
+                document.querySelectorAll('th').forEach(th => {
+                    th.style.color = 'white';
+                    th.style.backgroundColor = '#222';
+                    th.style.borderColor = 'white';
+                });
+                document.querySelectorAll('td').forEach(td => {
+                    td.style.color = 'white';
+                    td.style.backgroundColor = '#111';
+                    td.style.borderColor = 'white';
+                });
+                document.querySelectorAll('.filters label').forEach(label => label.style.color = 'white');
+                document.querySelectorAll('.filters select').forEach(select => {
+                    select.style.color = 'white';
+                    select.style.backgroundColor = '#111';
+                    select.style.borderColor = 'white';
+                });
+                document.querySelector('.settings-btn').style.color = 'white';
+                document.querySelector('.settings-btn').style.backgroundColor = '#111';
+                document.querySelector('.settings-btn').style.borderColor = 'white';
+                document.querySelector('.footer a').style.color = 'white';
+            } else {
+                // Белый фон: чёрный текст и границы
+                document.body.style.color = 'black';
+                document.querySelector('.modal-content').style.backgroundColor = 'white';
+                document.querySelector('.modal-content').style.color = 'black';
+                document.querySelectorAll('th').forEach(th => {
+                    th.style.color = 'black';
+                    th.style.backgroundColor = '#f2f2f2';
+                    th.style.borderColor = 'black';
+                });
+                document.querySelectorAll('td').forEach(td => {
+                    td.style.color = 'black';
+                    td.style.backgroundColor = 'white';
+                    td.style.borderColor = 'black';
+                });
+                document.querySelectorAll('.filters label').forEach(label => label.style.color = 'black');
+                document.querySelectorAll('.filters select').forEach(select => {
+                    select.style.color = 'black';
+                    select.style.backgroundColor = 'white';
+                    select.style.borderColor = 'black';
+                });
+                document.querySelector('.settings-btn').style.color = 'black';
+                document.querySelector('.settings-btn').style.backgroundColor = 'white';
+                document.querySelector('.settings-btn').style.borderColor = 'black';
+                document.querySelector('.footer a').style.color = '#007bff';
+            }
+        }
+
+        // Загрузка сохранённой темы при старте
+        function loadSavedTheme() {
+            const savedColor = localStorage.getItem('backgroundColor');
+            if (savedColor) {
+                changeBackground(savedColor);
+            }
+        }
+
+        // Закрытие модального окна при клике вне контента
+        window.onclick = function(event) {
+            const modal = document.getElementById('settingsModal');
+            if (event.target === modal) {
+                closeSettings();
+            }
+        };
+
+        // Загрузка данных и инициализация
+        fetch('normal.json', { cache: 'no-store' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки файла: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(rawData => {
+                originalData = normalizeData(rawData);
+                if (originalData.length > 0) {
+                    console.log('Нормализованные данные:', originalData);
+                    populateFilters(originalData);
+                    createTable(originalData);
+
+                    // Загружаем сохранённую тему после создания таблицы
+                    loadSavedTheme();
+
+                    // Добавляем обработчики событий для фильтров
+                    document.getElementById('dayFilter').addEventListener('change', filterData);
+                    document.getElementById('classFilter').addEventListener('change', filterData);
+                    document.getElementById('roomFilter').addEventListener('change', filterData);
+                } else {
+                    document.getElementById('tableContainer').textContent = 'Нет данных для отображения';
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                document.getElementById('tableContainer').textContent = 
+                    'Не удалось загрузить данные: ' + error.message;
+            });
+    </script>
+</body>
+</html>
