@@ -3,7 +3,6 @@
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <style>
-        /* Глобальный шрифт для всей страницы */
         body {
             font-family: Arial, sans-serif;
         }
@@ -20,11 +19,14 @@
             border: 1px solid black;
             padding: 8px;
             text-align: left;
+            white-space: nowrap; /* Предотвращаем перенос текста */
+            overflow: hidden; /* Скрываем текст, который не помещается */
+            text-overflow: ellipsis; /* Добавляем многоточие для длинного текста */
+            max-width: 150px; /* Ограничиваем ширину ячеек */
         }
         th {
             background-color: #f2f2f2;
         }
-        /* Скругление угловых ячеек */
         th:first-child {
             border-top-left-radius: 5px;
         }
@@ -62,14 +64,12 @@
         .footer a:hover {
             text-decoration: underline;
         }
-        /* Стили для кнопки настроек */
         .settings-btn {
             padding: 5px 10px;
             font-family: "Verdana", sans-serif;
             cursor: pointer;
             border-radius: 5px;
         }
-        /* Стили для модального окна */
         .modal {
             display: none;
             position: fixed;
@@ -114,21 +114,19 @@
         <a href="https://t.me/Digital_sch_Helper_bot" target="_blank">@Digital_sch_Helper_bot</a>
     </div>
 
-    <!-- Модальное окно -->
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <h3>Настройки</h3>
             <button onclick="changeBackground('black')">Чёрный фон</button>
             <button onclick="changeBackground('white')">Белый фон</button>
-            <button onclick="window.open('https://t.me/DH_Helper', '_blank')">Связаться с разработчиком</button>
+            <button onclick="window.open('https://t.me/DH_Helper', '_blank')">Поддержка</button>
             <button class="close-btn" onclick="closeSettings()">Закрыть</button>
         </div>
     </div>
 
     <script>
-        let originalData = []; // Храним исходные данные
+        let originalData = [];
 
-        // Определяем правильный порядок дней недели
         const dayOrder = [
             "Понедельник",
             "Вторник",
@@ -138,7 +136,6 @@
             "Суббота"
         ];
 
-        // Определяем порядок классов
         const classOrder = [
             "7Э", "7Ю", "7Я",
             "8Э", "8Ю", "8Я",
@@ -147,7 +144,6 @@
             "11Я"
         ];
 
-        // Функция нормализации данных
         function normalizeData(rawData) {
             if (!rawData || !rawData.data || !Array.isArray(rawData.data)) {
                 console.error('Данные не содержат массив в поле data или пусты:', rawData);
@@ -167,16 +163,21 @@
                 }
             });
 
+            console.log('Все ключи в данных:', [...allKeys]);
+
             return data.map(item => {
                 if (!item || typeof item !== 'object' || Array.isArray(item) || item === null) {
+                    console.warn('Некорректный элемент данных:', item);
                     return {};
                 }
                 const normalizedItem = {};
                 allKeys.forEach(key => {
-                    if (key === 'day') {
+                    if (key.toLowerCase() === 'day') {
                         normalizedItem['день'] = item[key] !== undefined ? String(item[key]).trim() : '';
-                    } else if (key === 'class') {
+                    } else if (key.toLowerCase() === 'class') {
                         normalizedItem['класс'] = item[key] !== undefined ? String(item[key]).trim() : '';
+                    } else if (key.toLowerCase() === 'room') {
+                        normalizedItem['кабинет'] = item[key] !== undefined ? String(item[key]).trim() : '';
                     } else {
                         normalizedItem[key] = item[key] !== undefined ? String(item[key]).trim() : '';
                     }
@@ -185,10 +186,9 @@
             });
         }
 
-        // Функция создания таблицы
         function createTable(data) {
             const container = document.getElementById('tableContainer');
-            container.innerHTML = ''; // Очищаем предыдущую таблицу
+            container.innerHTML = '';
 
             if (!data || !Array.isArray(data) || data.length === 0) {
                 container.textContent = 'Нет данных для отображения после фильтрации';
@@ -198,6 +198,7 @@
 
             if (!data[0] || typeof data[0] !== 'object' || data[0] === null) {
                 container.textContent = 'Данные некорректны';
+                console.log('Первые данные:', data[0]);
                 return;
             }
 
@@ -229,13 +230,11 @@
             container.appendChild(table);
         }
 
-        // Функция заполнения фильтров
         function populateFilters(data) {
             const dayFilter = document.getElementById('dayFilter');
             const classFilter = document.getElementById('classFilter');
             const roomFilter = document.getElementById('roomFilter');
 
-            // Уникальные дни с сортировкой по dayOrder
             const uniqueDays = [...new Set(data.map(item => item['день']))];
             const days = uniqueDays.sort((a, b) => {
                 const indexA = dayOrder.indexOf(a);
@@ -243,7 +242,6 @@
                 return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
             });
 
-            // Уникальные классы с сортировкой по classOrder
             const uniqueClasses = [...new Set(data.map(item => item['класс']))];
             const classes = uniqueClasses.sort((a, b) => {
                 const indexA = classOrder.indexOf(a);
@@ -251,10 +249,11 @@
                 return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
             });
 
-            // Уникальные кабинеты с сортировкой по алфавит
             const uniqueRooms = [...new Set(data.map(item => item['кабинет']))];
             const rooms = uniqueRooms.filter(room => room !== '').sort();
 
+            console.log('Уникальные дни:', uniqueDays);
+            console.log('Уникальные классы:', uniqueClasses);
             console.log('Уникальные кабинеты:', uniqueRooms);
 
             days.forEach(day => {
@@ -279,7 +278,6 @@
             });
         }
 
-        // Функция фильтрации данных
         function filterData() {
             const dayFilter = document.getElementById('dayFilter').value;
             const classFilter = document.getElementById('classFilter').value;
@@ -290,22 +288,34 @@
             console.log('Применяемые фильтры:', { dayFilter, classFilter, roomFilter });
 
             if (dayFilter) {
-                filteredData = filteredData.filter(item => item['день'] === dayFilter);
-                console.log('После фильтра по дню:', filteredData);
+                filteredData = filteredData.filter(item => {
+                    const day = item['день'] || '';
+                    const match = day.toLowerCase() === dayFilter.toLowerCase();
+                    console.log(`Фильтр по дню: ${day} === ${dayFilter} -> ${match}`);
+                    return match;
+                });
             }
             if (classFilter) {
-                filteredData = filteredData.filter(item => item['класс'] === classFilter);
-                console.log('После фильтра по классу:', filteredData);
+                filteredData = filteredData.filter(item => {
+                    const cls = item['класс'] || '';
+                    const match = cls.toLowerCase() === classFilter.toLowerCase();
+                    console.log(`Фильтр по классу: ${cls} === ${classFilter} -> ${match}`);
+                    return match;
+                });
             }
             if (roomFilter) {
-                filteredData = filteredData.filter(item => item['кабинет'] === roomFilter);
-                console.log('После фильтра по кабинету:', filteredData);
+                filteredData = filteredData.filter(item => {
+                    const room = item['кабинет'] || '';
+                    const match = room.toLowerCase() === roomFilter.toLowerCase();
+                    console.log(`Фильтр по кабинету: ${room} === ${roomFilter} -> ${match}`);
+                    return match;
+                });
             }
 
+            console.log('Отфильтрованные данные:', filteredData);
             createTable(filteredData);
         }
 
-        // Функции для модального окна
         function openSettings() {
             document.getElementById('settingsModal').style.display = 'flex';
         }
@@ -315,12 +325,10 @@
         }
 
         function changeBackground(color) {
-            // Сохраняем выбранный цвет в localStorage
             localStorage.setItem('backgroundColor', color);
             
             document.body.style.backgroundColor = color;
             if (color === 'black') {
-                // Чёрный фон: белый текст и границы
                 document.body.style.color = 'white';
                 document.querySelector('.modal-content').style.backgroundColor = '#111';
                 document.querySelector('.modal-content').style.color = 'white';
@@ -345,7 +353,6 @@
                 document.querySelector('.settings-btn').style.borderColor = 'white';
                 document.querySelector('.footer a').style.color = 'white';
             } else {
-                // Белый фон: чёрный текст и границы
                 document.body.style.color = 'black';
                 document.querySelector('.modal-content').style.backgroundColor = 'white';
                 document.querySelector('.modal-content').style.color = 'black';
@@ -372,7 +379,6 @@
             }
         }
 
-        // Загрузка сохранённой темы при старте
         function loadSavedTheme() {
             const savedColor = localStorage.getItem('backgroundColor');
             if (savedColor) {
@@ -380,7 +386,6 @@
             }
         }
 
-        // Закрытие модального окна при клике вне контента
         window.onclick = function(event) {
             const modal = document.getElementById('settingsModal');
             if (event.target === modal) {
@@ -388,7 +393,6 @@
             }
         };
 
-        // Загрузка данных и инициализация
         fetch('normal.json', { cache: 'no-store' })
             .then(response => {
                 if (!response.ok) {
@@ -397,16 +401,15 @@
                 return response.json();
             })
             .then(rawData => {
+                console.log('Сырые данные из normal.json:', rawData);
                 originalData = normalizeData(rawData);
+                console.log('Нормализованные данные:', originalData);
                 if (originalData.length > 0) {
-                    console.log('Нормализованные данные:', originalData);
                     populateFilters(originalData);
                     createTable(originalData);
 
-                    // Загружаем сохранённую тему после создания таблицы
                     loadSavedTheme();
 
-                    // Добавляем обработчики событий для фильтров
                     document.getElementById('dayFilter').addEventListener('change', filterData);
                     document.getElementById('classFilter').addEventListener('change', filterData);
                     document.getElementById('roomFilter').addEventListener('change', filterData);
