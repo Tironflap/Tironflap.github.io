@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 — Страница не найдена</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: "Roboto", sans-serif;
+            background-color: white; /* По умолчанию светлая тема */
+            color: black;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 120px;
+            margin: 0;
+            animation: shake 2s infinite; /* Анимация покачивания */
+        }
+
+        p {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Анимация покачивания */
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: rotate(-2deg); }
+            20%, 40%, 60%, 80% { transform: rotate(2deg); }
+        }
+
+        /* Стили для тёмной темы */
+        body.dark-theme {
+            background-color: black;
+            color: white;
+        }
+
+        body.dark-theme .btn {
+            background-color: #1a73e8;
+        }
+
+        body.dark-theme .btn:hover {
+            background-color: #1557b0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <p>Ой! Кажется, ты заблудился в школьных коридорах... 📚</p>
+        <p>Давай вернёмся к расписанию!</p>
+        <a href="https://tironflap.github.io/" class="btn">Вернуться на главную</a>
+    </div>
+
+    <script>
+        // Применяем текущую тему из localStorage
+        function applyTheme() {
+            const savedColor = localStorage.getItem('backgroundColor') || 'white';
+            if (savedColor === 'black') {
+                document.body.classList.add('dark-theme');
+            }
+        }
+
+        // Вызываем функцию при загрузке страницы
+        applyTheme();
+    </script>
+</body>
+</html>
