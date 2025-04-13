@@ -19,10 +19,10 @@
             border: 1px solid black;
             padding: 8px;
             text-align: left;
-            white-space: nowrap; /* Предотвращаем перенос текста */
-            overflow: hidden; /* Скрываем текст, который не помещается */
-            text-overflow: ellipsis; /* Добавляем многоточие для длинного текста */
-            max-width: 150px; /* Ограничиваем ширину ячеек */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
         }
         th {
             background-color: #f2f2f2;
@@ -186,6 +186,32 @@
             });
         }
 
+        function applyThemeToTable(color) {
+            if (color === 'black') {
+                document.querySelectorAll('th').forEach(th => {
+                    th.style.color = 'white';
+                    th.style.backgroundColor = '#222';
+                    th.style.borderColor = 'white';
+                });
+                document.querySelectorAll('td').forEach(td => {
+                    td.style.color = 'white';
+                    td.style.backgroundColor = '#111';
+                    td.style.borderColor = 'white';
+                });
+            } else {
+                document.querySelectorAll('th').forEach(th => {
+                    th.style.color = 'black';
+                    th.style.backgroundColor = '#f2f2f2';
+                    th.style.borderColor = 'black';
+                });
+                document.querySelectorAll('td').forEach(td => {
+                    td.style.color = 'black';
+                    td.style.backgroundColor = 'white';
+                    td.style.borderColor = 'black';
+                });
+            }
+        }
+
         function createTable(data) {
             const container = document.getElementById('tableContainer');
             container.innerHTML = '';
@@ -228,6 +254,10 @@
             table.appendChild(tbody);
 
             container.appendChild(table);
+
+            // Применяем текущую тему к новой таблице
+            const currentTheme = localStorage.getItem('backgroundColor') || 'white';
+            applyThemeToTable(currentTheme);
         }
 
         function populateFilters(data) {
@@ -332,16 +362,6 @@
                 document.body.style.color = 'white';
                 document.querySelector('.modal-content').style.backgroundColor = '#111';
                 document.querySelector('.modal-content').style.color = 'white';
-                document.querySelectorAll('th').forEach(th => {
-                    th.style.color = 'white';
-                    th.style.backgroundColor = '#222';
-                    th.style.borderColor = 'white';
-                });
-                document.querySelectorAll('td').forEach(td => {
-                    td.style.color = 'white';
-                    td.style.backgroundColor = '#111';
-                    td.style.borderColor = 'white';
-                });
                 document.querySelectorAll('.filters label').forEach(label => label.style.color = 'white');
                 document.querySelectorAll('.filters select').forEach(select => {
                     select.style.color = 'white';
@@ -356,16 +376,6 @@
                 document.body.style.color = 'black';
                 document.querySelector('.modal-content').style.backgroundColor = 'white';
                 document.querySelector('.modal-content').style.color = 'black';
-                document.querySelectorAll('th').forEach(th => {
-                    th.style.color = 'black';
-                    th.style.backgroundColor = '#f2f2f2';
-                    th.style.borderColor = 'black';
-                });
-                document.querySelectorAll('td').forEach(td => {
-                    td.style.color = 'black';
-                    td.style.backgroundColor = 'white';
-                    td.style.borderColor = 'black';
-                });
                 document.querySelectorAll('.filters label').forEach(label => label.style.color = 'black');
                 document.querySelectorAll('.filters select').forEach(select => {
                     select.style.color = 'black';
@@ -377,13 +387,14 @@
                 document.querySelector('.settings-btn').style.borderColor = 'black';
                 document.querySelector('.footer a').style.color = '#007bff';
             }
+
+            // Применяем стили к таблице после смены темы
+            applyThemeToTable(color);
         }
 
         function loadSavedTheme() {
-            const savedColor = localStorage.getItem('backgroundColor');
-            if (savedColor) {
-                changeBackground(savedColor);
-            }
+            const savedColor = localStorage.getItem('backgroundColor') || 'white';
+            changeBackground(savedColor);
         }
 
         window.onclick = function(event) {
