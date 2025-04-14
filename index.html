@@ -62,11 +62,13 @@
             flex: 1;
             min-width: 120px;
         }
-        .day-header {
+        .day-section {
+            margin-top: 20px;
+        }
+        .day-section h2 {
             font-family: "Verdana", sans-serif;
             font-size: 20px;
             margin: 10px 0;
-            display: none; /* Скрыт по умолчанию */
         }
         .footer {
             margin-top: 10px;
@@ -157,7 +159,7 @@
             }
 
             table {
-                min-width: 500px; /* Уменьшаем минимальную ширину, так как убрали колонку "день" */
+                min-width: 400px; /* Ещё меньше, так как убрали колонку "день" */
             }
 
             th, td {
@@ -166,9 +168,9 @@
                 max-width: 100px;
             }
 
-            .day-header {
+            .day-section h2 {
                 font-size: 16px;
-                margin: 5px 0;
+                margin: 10px 0;
             }
 
             .modal-content {
@@ -203,7 +205,6 @@
         <label>Кабинет: <select id="roomFilter"><option value="">Все</option></select></label>
         <button class="settings-btn" onclick="openSettings()">Настройки</button>
     </div>
-    <h2 class="day-header" id="dayHeader"></h2>
     <div id="tableContainer"></div>
     <div class="footer">
         <a href="https://t.me/Digital_sch_Helper_bot" target="_blank">@Digital_sch_Helper_bot</a>
@@ -293,7 +294,9 @@
                     td.style.backgroundColor = '#111';
                     td.style.borderColor = 'white';
                 });
-                document.querySelector('#dayHeader').style.color = 'white';
+                document.querySelectorAll('.day-section h2').forEach(h2 => {
+                    h2.style.color = 'white';
+                });
             } else {
                 document.querySelectorAll('th').forEach(th => {
                     th.style.color = 'black';
@@ -305,7 +308,9 @@
                     td.style.backgroundColor = 'white';
                     td.style.borderColor = 'black';
                 });
-                document.querySelector('#dayHeader').style.color = 'black';
+                document.querySelectorAll('.day-section h2').forEach(h2 => {
+                    h2.style.color = 'black';
+                });
             }
         }
 
@@ -325,46 +330,91 @@
                 return;
             }
 
-            let table = document.createElement('table');
-            let thead = document.createElement('thead');
-            let headerRow = document.createElement('tr');
-            let headers = Object.keys(data[0]).filter(header => header !== 'день'); // Исключаем колонку "день"
-            
-            headers.forEach(header => {
-                let th = document.createElement('th');
-                th.textContent = header;
-                headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
+            // Проверяем ширину экрана для определения режима отображения
+            const isMobile = window.innerWidth <= 768;
 
-            let tbody = document.createElement('tbody');
-            data.forEach(item => {
-                let row = document.createElement('tr');
-                headers.forEach(header => {
-                    let td = document.createElement('td');
-                    td.textContent = item[header] !== undefined ? item[header] : '';
-                    row.appendChild(td);
+            if (isMobile) {
+                // Мобильный вид: группируем данные по дням
+                const days = [...new Set(data.map(item => item['день']))].sort((a, b) => {
+                    const indexA = dayOrder.indexOf(a);
+                    const indexB = dayOrder.indexOf(b);
+                    return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
                 });
-                tbody.appendChild(row);
-            });
-            table.appendChild(tbody);
 
-            container.appendChild(table);
+                days.forEach(day => {
+                    const dayData = data.filter(item => item['день'] === day);
+                    if (dayData.length === 0) return;
+
+                    // Создаём секцию для дня
+                    const section = document.createElement('div');
+                    section.className = 'day-section';
+
+                    // Добавляем заголовок дня
+                    const dayHeader = document.createElement('h2');
+                    dayHeader.textContent = day;
+                    section.appendChild(dayHeader);
+
+                    // Создаём таблицу для этого дня
+                    let table = document.createElement('table');
+                    let thead = document.createElement('thead');
+                    let headerRow = document.createElement('tr');
+                    let headers = Object.keys(dayData[0]).filter(header => header !== 'день');
+
+                    headers.forEach(header => {
+                        let th = document.createElement('th');
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+
+                    let tbody = document.createElement('tbody');
+                    dayData.forEach(item => {
+                        let row = document.createElement('tr');
+                        headers.forEach(header => {
+                            let td = document.createElement('td');
+                            td.textContent = item[header] !== undefined ? item[header] : '';
+                            row.appendChild(td);
+                        });
+                        tbody.appendChild(row);
+                    });
+                    table.appendChild(tbody);
+
+                    section.appendChild(table);
+                    container.appendChild(section);
+                });
+            } else {
+                // Десктопный вид: одна таблица с колонкой "день"
+                let table = document.createElement('table');
+                let thead = document.createElement('thead');
+                let headerRow = document.createElement('tr');
+                let headers = Object.keys(data[0]);
+
+                headers.forEach(header => {
+                    let th = document.createElement('th');
+                    th.textContent = header;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                let tbody = document.createElement('tbody');
+                data.forEach(item => {
+                    let row = document.createElement('tr');
+                    headers.forEach(header => {
+                        let td = document.createElement('td');
+                        td.textContent = item[header] !== undefined ? item[header] : '';
+                        row.appendChild(td);
+                    });
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+
+                container.appendChild(table);
+            }
 
             const currentTheme = localStorage.getItem('backgroundColor') || 'white';
             applyThemeToTable(currentTheme);
-        }
-
-        function updateDayHeader() {
-            const dayFilter = document.getElementById('dayFilter').value;
-            const dayHeader = document.getElementById('dayHeader');
-            if (dayFilter) {
-                dayHeader.textContent = dayFilter;
-                dayHeader.style.display = 'block';
-            } else {
-                dayHeader.style.display = 'none';
-            }
         }
 
         function populateFilters(data) {
@@ -451,7 +501,6 @@
 
             console.log('Отфильтрованные данные:', filteredData);
             createTable(filteredData);
-            updateDayHeader(); // Обновляем заголовок с днём
         }
 
         function openSettings() {
@@ -511,6 +560,11 @@
             }
         };
 
+        // Обновляем таблицу при изменении размера окна
+        window.addEventListener('resize', () => {
+            filterData();
+        });
+
         fetch('normal.json', { cache: 'no-store' })
             .then(response => {
                 if (!response.ok) {
@@ -525,7 +579,6 @@
                 if (originalData.length > 0) {
                     populateFilters(originalData);
                     createTable(originalData);
-                    updateDayHeader(); // Инициализируем заголовок с днём
 
                     loadSavedTheme();
 
