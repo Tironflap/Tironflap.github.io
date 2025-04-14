@@ -343,41 +343,51 @@
                     const dayData = data.filter(item => item['день'] === day);
                     if (dayData.length === 0) return;
 
-                    const section = document.createElement('div');
-                    section.className = 'day-section';
-
-                    const dayHeader = document.createElement('h2');
-                    dayHeader.textContent = day;
-                    section.appendChild(dayHeader);
-
-                    let table = document.createElement('table');
-                    let thead = document.createElement('thead');
-                    let headerRow = document.createElement('tr');
-                    let headers = Object.keys(dayData[0]).filter(header => header !== 'день');
-
-                    headers.forEach(header => {
-                        let th = document.createElement('th');
-                        // Переименовываем "номер урока" в "номер"
-                        th.textContent = header === 'номер урока' ? 'номер' : header;
-                        headerRow.appendChild(th);
+                    const classes = [...new Set(dayData.map(item => item['класс']))].sort((a, b) => {
+                        const indexA = classOrder.indexOf(a);
+                        const indexB = classOrder.indexOf(b);
+                        return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
                     });
-                    thead.appendChild(headerRow);
-                    table.appendChild(thead);
 
-                    let tbody = document.createElement('tbody');
-                    dayData.forEach(item => {
-                        let row = document.createElement('tr');
+                    classes.forEach(cls => {
+                        const classData = dayData.filter(item => item['класс'] === cls);
+                        if (classData.length === 0) return;
+
+                        const section = document.createElement('div');
+                        section.className = 'day-section';
+
+                        const dayHeader = document.createElement('h2');
+                        dayHeader.textContent = `${day}, Класс ${cls}`;
+                        section.appendChild(dayHeader);
+
+                        let table = document.createElement('table');
+                        let thead = document.createElement('thead');
+                        let headerRow = document.createElement('tr');
+                        let headers = Object.keys(classData[0]).filter(header => header !== 'день' && header !== 'класс');
+
                         headers.forEach(header => {
-                            let td = document.createElement('td');
-                            td.textContent = item[header] !== undefined ? item[header] : '';
-                            row.appendChild(td);
+                            let th = document.createElement('th');
+                            th.textContent = header === 'номер урока' ? 'номер' : header;
+                            headerRow.appendChild(th);
                         });
-                        tbody.appendChild(row);
-                    });
-                    table.appendChild(tbody);
+                        thead.appendChild(headerRow);
+                        table.appendChild(thead);
 
-                    section.appendChild(table);
-                    container.appendChild(section);
+                        let tbody = document.createElement('tbody');
+                        classData.forEach(item => {
+                            let row = document.createElement('tr');
+                            headers.forEach(header => {
+                                let td = document.createElement('td');
+                                td.textContent = item[header] !== undefined ? item[header] : '';
+                                row.appendChild(td);
+                            });
+                            tbody.appendChild(row);
+                        });
+                        table.appendChild(tbody);
+
+                        section.appendChild(table);
+                        container.appendChild(section);
+                    });
                 });
             } else {
                 let table = document.createElement('table');
@@ -387,7 +397,6 @@
 
                 headers.forEach(header => {
                     let th = document.createElement('th');
-                    // Переименовываем "номер урока" в "номер"
                     th.textContent = header === 'номер урока' ? 'номер' : header;
                     headerRow.appendChild(th);
                 });
