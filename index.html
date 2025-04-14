@@ -15,7 +15,7 @@
             border-collapse: separate;
             border-spacing: 0;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
             font-family: "Roboto", sans-serif;
             border-radius: 5px;
         }
@@ -61,6 +61,12 @@
             font-size: 16px;
             flex: 1;
             min-width: 120px;
+        }
+        .day-header {
+            font-family: "Verdana", sans-serif;
+            font-size: 20px;
+            margin: 10px 0;
+            display: none; /* Скрыт по умолчанию */
         }
         .footer {
             margin-top: 10px;
@@ -145,20 +151,24 @@
                 box-sizing: border-box;
             }
 
-            /* Делаем таблицу прокручиваемой горизонтально */
             #tableContainer {
                 overflow-x: auto;
-                -webkit-overflow-scrolling: touch; /* Плавная прокрутка на iOS */
+                -webkit-overflow-scrolling: touch;
             }
 
             table {
-                min-width: 600px; /* Минимальная ширина таблицы */
+                min-width: 500px; /* Уменьшаем минимальную ширину, так как убрали колонку "день" */
             }
 
             th, td {
                 padding: 6px;
                 font-size: 12px;
                 max-width: 100px;
+            }
+
+            .day-header {
+                font-size: 16px;
+                margin: 5px 0;
             }
 
             .modal-content {
@@ -193,6 +203,7 @@
         <label>Кабинет: <select id="roomFilter"><option value="">Все</option></select></label>
         <button class="settings-btn" onclick="openSettings()">Настройки</button>
     </div>
+    <h2 class="day-header" id="dayHeader"></h2>
     <div id="tableContainer"></div>
     <div class="footer">
         <a href="https://t.me/Digital_sch_Helper_bot" target="_blank">@Digital_sch_Helper_bot</a>
@@ -282,6 +293,7 @@
                     td.style.backgroundColor = '#111';
                     td.style.borderColor = 'white';
                 });
+                document.querySelector('#dayHeader').style.color = 'white';
             } else {
                 document.querySelectorAll('th').forEach(th => {
                     th.style.color = 'black';
@@ -293,6 +305,7 @@
                     td.style.backgroundColor = 'white';
                     td.style.borderColor = 'black';
                 });
+                document.querySelector('#dayHeader').style.color = 'black';
             }
         }
 
@@ -315,7 +328,7 @@
             let table = document.createElement('table');
             let thead = document.createElement('thead');
             let headerRow = document.createElement('tr');
-            let headers = Object.keys(data[0]);
+            let headers = Object.keys(data[0]).filter(header => header !== 'день'); // Исключаем колонку "день"
             
             headers.forEach(header => {
                 let th = document.createElement('th');
@@ -341,6 +354,17 @@
 
             const currentTheme = localStorage.getItem('backgroundColor') || 'white';
             applyThemeToTable(currentTheme);
+        }
+
+        function updateDayHeader() {
+            const dayFilter = document.getElementById('dayFilter').value;
+            const dayHeader = document.getElementById('dayHeader');
+            if (dayFilter) {
+                dayHeader.textContent = dayFilter;
+                dayHeader.style.display = 'block';
+            } else {
+                dayHeader.style.display = 'none';
+            }
         }
 
         function populateFilters(data) {
@@ -427,6 +451,7 @@
 
             console.log('Отфильтрованные данные:', filteredData);
             createTable(filteredData);
+            updateDayHeader(); // Обновляем заголовок с днём
         }
 
         function openSettings() {
@@ -500,6 +525,7 @@
                 if (originalData.length > 0) {
                     populateFilters(originalData);
                     createTable(originalData);
+                    updateDayHeader(); // Инициализируем заголовок с днём
 
                     loadSavedTheme();
 
