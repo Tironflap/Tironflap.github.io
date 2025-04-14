@@ -159,7 +159,7 @@
             }
 
             table {
-                min-width: 400px; /* Ещё меньше, так как убрали колонку "день" */
+                min-width: 400px;
             }
 
             th, td {
@@ -330,11 +330,9 @@
                 return;
             }
 
-            // Проверяем ширину экрана для определения режима отображения
             const isMobile = window.innerWidth <= 768;
 
             if (isMobile) {
-                // Мобильный вид: группируем данные по дням
                 const days = [...new Set(data.map(item => item['день']))].sort((a, b) => {
                     const indexA = dayOrder.indexOf(a);
                     const indexB = dayOrder.indexOf(b);
@@ -345,16 +343,13 @@
                     const dayData = data.filter(item => item['день'] === day);
                     if (dayData.length === 0) return;
 
-                    // Создаём секцию для дня
                     const section = document.createElement('div');
                     section.className = 'day-section';
 
-                    // Добавляем заголовок дня
                     const dayHeader = document.createElement('h2');
                     dayHeader.textContent = day;
                     section.appendChild(dayHeader);
 
-                    // Создаём таблицу для этого дня
                     let table = document.createElement('table');
                     let thead = document.createElement('thead');
                     let headerRow = document.createElement('tr');
@@ -362,7 +357,8 @@
 
                     headers.forEach(header => {
                         let th = document.createElement('th');
-                        th.textContent = header;
+                        // Переименовываем "номер урока" в "номер"
+                        th.textContent = header === 'номер урока' ? 'номер' : header;
                         headerRow.appendChild(th);
                     });
                     thead.appendChild(headerRow);
@@ -384,7 +380,6 @@
                     container.appendChild(section);
                 });
             } else {
-                // Десктопный вид: одна таблица с колонкой "день"
                 let table = document.createElement('table');
                 let thead = document.createElement('thead');
                 let headerRow = document.createElement('tr');
@@ -392,7 +387,8 @@
 
                 headers.forEach(header => {
                     let th = document.createElement('th');
-                    th.textContent = header;
+                    // Переименовываем "номер урока" в "номер"
+                    th.textContent = header === 'номер урока' ? 'номер' : header;
                     headerRow.appendChild(th);
                 });
                 thead.appendChild(headerRow);
@@ -560,7 +556,6 @@
             }
         };
 
-        // Обновляем таблицу при изменении размера окна
         window.addEventListener('resize', () => {
             filterData();
         });
