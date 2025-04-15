@@ -9,7 +9,7 @@ const firebaseConfig = {
     measurementId: "G-FV1DTL5TRW"
   };
 
-// Инициализация приложения
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
@@ -25,7 +25,7 @@ if (registerForm) {
     auth.createUserWithEmailAndPassword(email, password)
       .then(() => {
         message.textContent = 'Регистрация успешна! Перенаправляем...';
-        setTimeout(() => window.location.href = 'index.html', 2000);
+        setTimeout(() => window.location.href = 'dstimes.html', 2000);
       })
       .catch((error) => {
         message.textContent = `Ошибка: ${error.message}`;
@@ -45,10 +45,42 @@ if (loginForm) {
     auth.signInWithEmailAndPassword(email, password)
       .then(() => {
         message.textContent = 'Вход успешен! Перенаправляем...';
-        setTimeout(() => window.location.href = 'index.html', 2000);
+        setTimeout(() => window.location.href = 'dstimes.html', 2000);
       })
       .catch((error) => {
         message.textContent = `Ошибка: ${error.message}`;
       });
   });
 }
+
+// Управление тёмной темой
+function initializeTheme() {
+  // Загрузка сохранённой темы
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-theme');
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      themeToggle.checked = true;
+    }
+  }
+
+  // Обработчик переключателя темы
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('change', () => {
+      document.body.classList.toggle('dark-theme');
+      if (document.body.classList.contains('dark-theme')) {
+        localStorage.setItem('theme', 'dark');
+      } else {
+        localStorage.setItem('theme', 'light');
+      }
+    });
+  } else {
+    console.warn('Переключатель темы (#theme-toggle) не найден на странице');
+  }
+}
+
+// Запуск инициализации темы после загрузки DOM
+document.addEventListener('DOMContentLoaded', () => {
+  initializeTheme();
+});
