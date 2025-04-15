@@ -8,7 +8,6 @@ const firebaseConfig = {
     appId: "1:1060212009626:web:1eee1200c67962b9260d23",
     measurementId: "G-FV1DTL5TRW"
   };
-
 // Инициализация приложения
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -74,7 +73,7 @@ function applyTheme() {
     document.body.classList.remove('dark-theme');
   }
 
-  // Синхронизируем переключатель
+  // Синхронизируем переключатель (только на settings.html)
   if (themeToggle) {
     themeToggle.checked = isDarkTheme;
   }
