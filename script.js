@@ -9,7 +9,7 @@ const firebaseConfig = {
     measurementId: "G-FV1DTL5TRW"
   };
 
-
+// Инициализация приложения
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
@@ -54,33 +54,61 @@ if (loginForm) {
 }
 
 // Управление тёмной темой
-function initializeTheme() {
-  // Загрузка сохранённой темы
-  if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark-theme');
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-      themeToggle.checked = true;
-    }
+function applyTheme() {
+  const savedTheme = localStorage.getItem('theme');
+  const themeToggle = document.getElementById('theme-toggle');
+  let isDarkTheme;
+
+  // Если есть сохранённая тема, используем её
+  if (savedTheme) {
+    isDarkTheme = savedTheme === 'dark';
+  } else {
+    // Иначе используем системную тему
+    isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
   }
 
-  // Обработчик переключателя темы
-  const themeToggle = document.getElementById('theme-toggle');
-  if (themeToggle) {
-    themeToggle.addEventListener('change', () => {
-      document.body.classList.toggle('dark-theme');
-      if (document.body.classList.contains('dark-theme')) {
-        localStorage.setItem('theme', 'dark');
-      } else {
-        localStorage.setItem('theme', 'light');
-      }
-    });
+  // Применяем тему
+  if (isDarkTheme) {
+    document.body.classList.add('dark-theme');
   } else {
-    console.warn('Переключатель темы (#theme-toggle) не найден на странице');
+    document.body.classList.remove('dark-theme');
+  }
+
+  // Синхронизируем переключатель
+  if (themeToggle) {
+    themeToggle.checked = isDarkTheme;
   }
 }
 
-// Запуск инициализации темы после загрузки DOM
+function toggleTheme() {
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('change', () => {
+      const isDarkTheme = themeToggle.checked;
+      if (isDarkTheme) {
+        document.body.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-theme');
+        localStorage.setItem('theme', 'light');
+      }
+    });
+  }
+}
+
+// Реагируем на изменение системной темы
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+  if (!localStorage.getItem('theme')) {
+    applyTheme();
+  }
+});
+
+// Инициализация темы при загрузке
 document.addEventListener('DOMContentLoaded', () => {
-  initializeTheme();
+  try {
+    applyTheme();
+    toggleTheme();
+  } catch (error) {
+    console.error('Ошибка при инициализации темы:', error);
+  }
 });
