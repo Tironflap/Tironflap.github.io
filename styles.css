@@ -1,0 +1,43 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+header {
+  background-color: #333;
+  color: white;
+  padding: 1em;
+  text-align: center;
+}
+nav a {
+  color: white;
+  margin: 0 1em;
+  text-decoration: none;
+}
+nav a:hover {
+  text-decoration: underline;
+}
+main {
+  max-width: 800px;
+  margin: 2em auto;
+  padding: 0 1em;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  max-width: 300px;
+}
+button {
+  background-color: #333;
+  color: white;
+  padding: 0.5em;
+  border: none;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #555;
+}
+article {
+  margin-bottom: 2em;
+}
