@@ -54,30 +54,59 @@ main {
 form {
   display: flex;
   flex-direction: column;
-  gap: 1em;
-  max-width: 300px;
+  align-items: center; /* Центрируем элементы формы */
+  max-width: 400px; /* Увеличиваем ширину формы */
+  margin: 0 auto; /* Центрируем форму на странице */
+  padding: 1em;
+  background-color: #fff; /* Добавляем фон для формы */
+  border-radius: 8px; /* Скругляем углы */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Добавляем тень */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-input, button {
+body.dark-theme form {
+  background-color: #2a2a2a; /* Фон формы в тёмной теме */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Тень в тёмной теме */
+}
+
+label {
+  align-self: flex-start; /* Лейблы выравниваем по левому краю */
+  margin-bottom: 0.3em; /* Отступ под лейблом */
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+body.dark-theme label {
+  color: #e0e0e0;
+}
+
+input {
+  width: 100%; /* Поля ввода занимают всю ширину формы */
+  max-width: 300px; /* Ограничиваем максимальную ширину */
   padding: 0.5em;
+  margin-bottom: 1em; /* Увеличиваем отступ снизу */
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: white;
   color: #333;
+  box-sizing: border-box; /* Учитываем padding и border в ширине */
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-body.dark-theme input,
-body.dark-theme button {
-  background-color: #2a2a2a;
+body.dark-theme input {
+  background-color: #3a3a3a;
   color: #e0e0e0;
   border-color: #555;
 }
 
 button {
+  width: 100%; /* Кнопка занимает ту же ширину, что и поля ввода */
+  max-width: 300px; /* Ограничиваем ширину кнопки */
+  padding: 0.5em;
+  border: none;
+  border-radius: 4px;
   background-color: #333;
   color: white;
-  border: none;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -98,16 +127,6 @@ article {
   margin-bottom: 2em;
 }
 
-label {
-  margin-right: 1em;
-  color: #333;
-  transition: color 0.3s ease;
-}
-
-body.dark-theme label {
-  color: #e0e0e0;
-}
-
 #theme-toggle {
   cursor: pointer;
 }
@@ -118,6 +137,9 @@ body.dark-theme label {
   color: #ff0000;
   margin-top: 0.5em;
   min-height: 1.5em;
+  text-align: center; /* Центрируем текст сообщения */
+  width: 100%; /* Сообщение занимает всю ширину формы */
+  max-width: 300px; /* Ограничиваем ширину сообщения */
 }
 
 body.dark-theme #login-message,
