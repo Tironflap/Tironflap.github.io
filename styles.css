@@ -15,7 +15,7 @@ body.dark-theme {
 header {
   background-color: #333;
   color: white;
-  padding: 1em;
+  padding: 1.5em;
   text-align: center;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -28,12 +28,13 @@ body.dark-theme header {
 nav {
   display: flex;
   justify-content: center;
-  gap: 1em;
+  gap: 1.5em;
 }
 
 nav a {
   color: white;
   text-decoration: none;
+  font-size: 1.1em;
   transition: color 0.3s ease;
 }
 
@@ -47,35 +48,39 @@ nav a:hover {
 
 main {
   max-width: 800px;
-  margin: 2em auto;
-  padding: 0 1em;
+  margin: 0 auto;
+  padding: 2em 1em;
   min-height: calc(100vh - 150px); /* Учитываем высоту header */
   display: flex;
   flex-direction: column;
   justify-content: center; /* Центрируем форму по вертикали */
+  align-items: center; /* Центрируем по горизонтали */
 }
 
 form {
   display: flex;
   flex-direction: column;
   align-items: center; /* Центрируем элементы формы */
-  max-width: 400px; /* Увеличиваем ширину формы */
+  max-width: 450px; /* Увеличиваем ширину формы */
+  width: 100%; /* Форма адаптируется к экрану */
   margin: 0 auto; /* Центрируем форму на странице */
-  padding: 1.5em; /* Увеличиваем внутренние отступы */
+  padding: 2em; /* Увеличиваем внутренние отступы */
   background-color: #fff; /* Добавляем фон для формы */
-  border-radius: 8px; /* Скругляем углы */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Добавляем тень */
+  border-radius: 12px; /* Увеличиваем скругление углов */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Усиливаем тень */
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 body.dark-theme form {
   background-color: #2a2a2a; /* Фон формы в тёмной теме */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Тень в тёмной теме */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Тень в тёмной теме */
 }
 
 label {
   align-self: flex-start; /* Лейблы выравниваем по левому краю */
-  margin-bottom: 0.3em; /* Отступ под лейблом */
+  margin-bottom: 0.5em; /* Увеличиваем отступ под лейблом */
+  font-size: 1.1em; /* Увеличиваем размер шрифта */
+  font-weight: bold; /* Делаем текст жирным */
   color: #333;
   transition: color 0.3s ease;
 }
@@ -86,13 +91,14 @@ body.dark-theme label {
 
 input {
   width: 100%; /* Поля ввода занимают всю ширину формы */
-  max-width: 300px; /* Ограничиваем максимальную ширину */
-  padding: 0.5em;
-  margin-bottom: 1em; /* Увеличиваем отступ снизу */
+  max-width: 350px; /* Увеличиваем максимальную ширину */
+  padding: 0.75em; /* Увеличиваем внутренние отступы */
+  margin-bottom: 1.5em; /* Увеличиваем отступ снизу */
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px; /* Увеличиваем скругление углов */
   background-color: white;
   color: #333;
+  font-size: 1em;
   box-sizing: border-box; /* Учитываем padding и border в ширине */
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
@@ -105,12 +111,14 @@ body.dark-theme input {
 
 button {
   width: 100%; /* Кнопка занимает ту же ширину, что и поля ввода */
-  max-width: 300px; /* Ограничиваем ширину кнопки */
-  padding: 0.5em;
+  max-width: 350px; /* Увеличиваем ширину кнопки */
+  padding: 0.75em;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   background-color: #333;
   color: white;
+  font-size: 1.1em;
+  font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -143,15 +151,16 @@ article {
   align-items: center; /* Центрируем текст по вертикали внутри блока */
   color: #ff0000;
   margin-top: 0.5em;
-  margin-bottom: 0.5em; /* Добавляем отступ снизу */
-  padding: 0.5em; /* Добавляем внутренние отступы */
+  margin-bottom: 1em; /* Увеличиваем отступ снизу */
+  padding: 0.75em; /* Увеличиваем внутренние отступы */
   min-height: 1.5em;
   width: 100%; /* Сообщение занимает всю ширину формы */
-  max-width: 300px; /* Ограничиваем ширину сообщения */
+  max-width: 350px; /* Увеличиваем ширину сообщения */
   text-align: center; /* Дополнительно центрируем текст */
-  font-size: 0.9em; /* Уменьшаем шрифт для компактности */
-  background-color: rgba(255, 0, 0, 0.1); /* Добавляем лёгкий красный фон */
-  border-radius: 4px; /* Скругляем углы */
+  font-size: 1em; /* Увеличиваем размер шрифта */
+  font-weight: bold; /* Делаем текст жирным */
+  background-color: rgba(255, 0, 0, 0.1); /* Лёгкий красный фон */
+  border-radius: 6px; /* Увеличиваем скругление углов */
   transition: background-color 0.3s ease;
 }
 
