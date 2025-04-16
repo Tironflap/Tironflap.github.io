@@ -69,15 +69,13 @@ let auth;
 try {
   if (typeof firebase !== 'undefined') {
     const firebaseConfig = {
-    apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb9ODs",
-    authDomain: "ds-times-c9894.firebaseapp.com",
-    projectId: "ds-times-c9894",
-    storageBucket: "ds-times-c9894.firebasestorage.app",
-    messagingSenderId: "1060212009626",
-    appId: "1:1060212009626:web:1eee1200c67962b9260d23",
-    measurementId: "G-FV1DTL5TRW"
-};
-
+      apiKey: "твой-новый-api-ключ-из-firebase-console", // Убедись, что ключ правильный
+      authDomain: "ds-times-c9894.firebaseapp.com",
+      projectId: "ds-times-c9894",
+      storageBucket: "ds-times-c9894.appspot.com",
+      messagingSenderId: "1060212009626",
+      appId: "1:1060212009626:web:1eee1200c7962b92060d23",
+      measurementId: "G-FV1DTL5TRW"
     };
 
     // Инициализация приложения Firebase
