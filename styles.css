@@ -49,6 +49,10 @@ main {
   max-width: 800px;
   margin: 2em auto;
   padding: 0 1em;
+  min-height: calc(100vh - 150px); /* Учитываем высоту header */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Центрируем форму по вертикали */
 }
 
 form {
@@ -57,7 +61,7 @@ form {
   align-items: center; /* Центрируем элементы формы */
   max-width: 400px; /* Увеличиваем ширину формы */
   margin: 0 auto; /* Центрируем форму на странице */
-  padding: 1em;
+  padding: 1.5em; /* Увеличиваем внутренние отступы */
   background-color: #fff; /* Добавляем фон для формы */
   border-radius: 8px; /* Скругляем углы */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Добавляем тень */
@@ -136,15 +140,23 @@ article {
 #register-message {
   display: flex; /* Используем flex для центрирования */
   justify-content: center; /* Центрируем текст по горизонтали */
+  align-items: center; /* Центрируем текст по вертикали внутри блока */
   color: #ff0000;
   margin-top: 0.5em;
+  margin-bottom: 0.5em; /* Добавляем отступ снизу */
+  padding: 0.5em; /* Добавляем внутренние отступы */
   min-height: 1.5em;
   width: 100%; /* Сообщение занимает всю ширину формы */
   max-width: 300px; /* Ограничиваем ширину сообщения */
   text-align: center; /* Дополнительно центрируем текст */
+  font-size: 0.9em; /* Уменьшаем шрифт для компактности */
+  background-color: rgba(255, 0, 0, 0.1); /* Добавляем лёгкий красный фон */
+  border-radius: 4px; /* Скругляем углы */
+  transition: background-color 0.3s ease;
 }
 
 body.dark-theme #login-message,
 body.dark-theme #register-message {
   color: #ff6666;
+  background-color: rgba(255, 102, 102, 0.2); /* Лёгкий красный фон в тёмной теме */
 }
