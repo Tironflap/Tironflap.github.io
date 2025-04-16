@@ -2,42 +2,125 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
+  background-color: #f4f4f4;
+  color: #333;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+body.dark-theme {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
 header {
   background-color: #333;
   color: white;
   padding: 1em;
   text-align: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+body.dark-theme header {
+  background-color: #0d0d0d;
+  color: #e0e0e0;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+}
+
 nav a {
   color: white;
-  margin: 0 1em;
   text-decoration: none;
+  transition: color 0.3s ease;
 }
+
+body.dark-theme nav a {
+  color: #b0b0b0;
+}
+
 nav a:hover {
   text-decoration: underline;
 }
+
 main {
   max-width: 800px;
   margin: 2em auto;
   padding: 0 1em;
 }
+
 form {
   display: flex;
   flex-direction: column;
   gap: 1em;
   max-width: 300px;
 }
+
+input, button {
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark-theme input,
+body.dark-theme button {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border-color: #555;
+}
+
 button {
   background-color: #333;
   color: white;
-  padding: 0.5em;
   border: none;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
+
+body.dark-theme button {
+  background-color: #3a3a3a;
+}
+
 button:hover {
   background-color: #555;
 }
+
+body.dark-theme button:hover {
+  background-color: #5a5a5a;
+}
+
 article {
   margin-bottom: 2em;
+}
+
+label {
+  margin-right: 1em;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+body.dark-theme label {
+  color: #e0e0e0;
+}
+
+#theme-toggle {
+  cursor: pointer;
+}
+
+/* Стили для сообщений об ошибках */
+#login-message,
+#register-message {
+  color: #ff0000;
+  margin-top: 0.5em;
+  min-height: 1.5em;
+}
+
+body.dark-theme #login-message,
+body.dark-theme #register-message {
+  color: #ff6666;
 }
