@@ -53,12 +53,12 @@ let auth;
 try {
   if (typeof firebase !== 'undefined') {
     const firebaseConfig = {
-      apiKey: "AIzaSyBRse0CPR2c0PbiTIERspynL09DEzrb90Ds",
+      apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb9ODs",
       authDomain: "ds-times-c9894.firebaseapp.com",
       projectId: "ds-times-c9894",
-      storageBucket: "ds-times-c9894.firestore.app",
+      storageBucket: "ds-times-c9894.firebasestorage.app",
       messagingSenderId: "1060212009626",
-      appId: "1:1060212009626:web:1eee1200c7962b92060d23",
+      appId: "1:1060212009626:web:1eee1200c67962b9260d23",
       measurementId: "G-FV1DTL5TRW"
     };
 
