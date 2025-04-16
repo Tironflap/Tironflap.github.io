@@ -69,15 +69,14 @@ let auth;
 try {
   if (typeof firebase !== 'undefined') {
     const firebaseConfig = {
-    apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb9ODs",
-    authDomain: "ds-times-c9894.firebaseapp.com",
-    projectId: "ds-times-c9894",
-    storageBucket: "ds-times-c9894.firebasestorage.app",
-    messagingSenderId: "1060212009626",
-    appId: "1:1060212009626:web:1eee1200c67962b9260d23",
-    measurementId: "G-FV1DTL5TRW"
-};
-
+      apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb9ODs", // Замени на правильный ключ
+      authDomain: "ds-times-c9894.firebaseapp.com",
+      projectId: "ds-times-c9894",
+      storageBucket: "ds-times-c9894.appspot.com",
+      messagingSenderId: "1060212009626",
+      appId: "1:1060212009626:web:1eee1200c7962b92060d23",
+      measurementId: "G-FV1DTL5TRW"
+    };
 
     // Инициализация приложения Firebase
     firebase.initializeApp(firebaseConfig);
@@ -151,6 +150,44 @@ try {
               default:
                 message.textContent = `Ошибка: ${error.message}`;
             }
+          });
+      });
+    }
+
+    // Сброс пароля
+    const forgotPasswordLink = document.getElementById('forgot-password');
+    if (forgotPasswordLink) {
+      forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const message = document.getElementById('login-message');
+
+        if (!email) {
+          message.textContent = 'Ошибка: Введите email для сброса пароля.';
+          return;
+        }
+
+        auth.sendPasswordResetEmail(email)
+          .then(() => {
+            message.textContent = 'Письмо для сброса пароля отправлено! Проверьте ваш email.';
+            message.style.color = '#28a745'; // Зелёный цвет для успешного сообщения
+          })
+          .catch((error) => {
+            // Обработка ошибок при сбросе пароля
+            switch (error.code) {
+              case 'auth/invalid-email':
+                message.textContent = 'Ошибка: Неверный формат email.';
+                break;
+              case 'auth/user-not-found':
+                message.textContent = 'Ошибка: Пользователь с таким email не найден.';
+                break;
+              case 'auth/too-many-requests':
+                message.textContent = 'Ошибка: Слишком много попыток. Попробуйте позже.';
+                break;
+              default:
+                message.textContent = `Ошибка: ${error.message}`;
+            }
+            message.style.color = '#ff0000'; // Красный цвет для ошибки
           });
       });
     }
