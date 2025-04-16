@@ -134,12 +134,14 @@ article {
 /* Стили для сообщений об ошибках */
 #login-message,
 #register-message {
+  display: flex; /* Используем flex для центрирования */
+  justify-content: center; /* Центрируем текст по горизонтали */
   color: #ff0000;
   margin-top: 0.5em;
   min-height: 1.5em;
-  text-align: center; /* Центрируем текст сообщения */
   width: 100%; /* Сообщение занимает всю ширину формы */
   max-width: 300px; /* Ограничиваем ширину сообщения */
+  text-align: center; /* Дополнительно центрируем текст */
 }
 
 body.dark-theme #login-message,
