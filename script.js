@@ -61,23 +61,45 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
 // Инициализация Firebase
 let auth;
 let db;
+let storage;
 try {
   if (typeof firebase !== 'undefined') {
     console.log('Firebase SDK подключён, инициализируем...');
     const firebaseConfig = {
-      apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb9ODs",
-      authDomain: "ds-times-c9894.firebaseapp.com",
-      projectId: "ds-times-c9894",
-      storageBucket: "ds-times-c9894.appspot.com",
-      messagingSenderId: "1060212009626",
-      appId: "1:1060212009626:web:1eee1200c7962b92060d23",
-      measurementId: "G-FV1DTL5TRW"
+      apiKey: "AIzaSyC1vAXe25SBaDYejz5XKUL4tfNRmPM9h9g", // Убедись, что это новый apiKey
+      authDomain: "ds-times-c9894.firebaseapp.com", // Убедись, что это новый authDomain
+      projectId: "ds-times-c9894", // Убедись, что это новый projectId
+      storageBucket: "ds-times-c9894.appspot.com", // Убедись, что это новый storageBucket
+      messagingSenderId: "1060212009626", // Убедись, что это новый messagingSenderId
+      appId: "1:1060212009626:web:1eee1200c7962b92060d23", // Убедись, что это новый appId
+      measurementId: "G-FV1DTL5TRW" // Убедись, что это новый measurementId
     };
 
     firebase.initializeApp(firebaseConfig);
+    console.log('Firebase App инициализирован');
+
     auth = firebase.auth();
-    db = firebase.firestore();
-    console.log('Firebase успешно инициализирован');
+    console.log('Firebase Auth инициализирован');
+
+    if (typeof firebase.firestore === 'function') {
+      db = firebase.firestore();
+      console.log('Firebase Firestore успешно инициализирован');
+    } else {
+      console.error('Firestore не доступен: firebase.firestore не является функцией');
+      const message = document.getElementById('register-message') || document.getElementById('login-message');
+      if (message) {
+        message.textContent = 'Ошибка: Firestore не доступен. Проверьте подключение firebase-firestore.js.';
+      }
+      throw new Error('Firestore not available');
+    }
+
+    if (typeof firebase.storage === 'function') {
+      storage = firebase.storage();
+      console.log('Firebase Storage успешно инициализирован');
+    } else {
+      console.error('Storage не доступен: firebase.storage не является функцией');
+      throw new Error('Storage not available');
+    }
   } else {
     console.error('Firebase SDK не подключён на этой странице');
     const message = document.getElementById('register-message') || document.getElementById('login-message');
@@ -91,6 +113,26 @@ try {
   if (message) {
     message.textContent = 'Ошибка инициализации Firebase: ' + error.message;
   }
+}
+
+// Функция для показа модального окна
+function showModal(message, isSuccess = true) {
+  const modal = document.getElementById('modal');
+  const modalMessage = document.getElementById('modal-message');
+  modalMessage.textContent = message;
+  modalMessage.style.color = isSuccess ? '#28a745' : '#ff0000';
+  modal.style.display = 'block';
+
+  const closeModal = document.querySelector('.close-modal');
+  closeModal.onclick = () => {
+    modal.style.display = 'none';
+  };
+
+  window.onclick = (event) => {
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  };
 }
 
 // Регистрация
@@ -115,6 +157,12 @@ if (registerForm) {
     if (!auth) {
       console.error('Auth не инициализирован');
       message.textContent = 'Ошибка: Firebase Auth не инициализирован.';
+      return;
+    }
+
+    if (!db) {
+      console.error('Firestore не инициализирован');
+      message.textContent = 'Ошибка: Firestore не инициализирован.';
       return;
     }
 
@@ -258,21 +306,25 @@ auth.onAuthStateChanged((user) => {
       userGreeting.textContent = `Привет, ${user.displayName || 'Пользователь'}!`;
     }
 
-    db.collection('users').doc(user.uid).get()
-      .then((doc) => {
-        if (doc.exists) {
-          const userData = doc.data();
-          isAdmin = userData.role === 'admin';
-          const postFormContainer = document.getElementById('post-form-container');
-          if (isAdmin && postFormContainer) {
-            postFormContainer.style.display = 'block';
+    if (db) {
+      db.collection('users').doc(user.uid).get()
+        .then((doc) => {
+          if (doc.exists) {
+            const userData = doc.data();
+            isAdmin = userData.role === 'admin';
+            const postFormContainer = document.getElementById('post-form-container');
+            if (isAdmin && postFormContainer) {
+              postFormContainer.style.display = 'block';
+            }
+            loadPosts();
           }
-          loadPosts();
-        }
-      })
-      .catch((error) => {
-        console.error('Ошибка при получении роли пользователя:', error);
-      });
+        })
+        .catch((error) => {
+          console.error('Ошибка при получении роли пользователя:', error);
+        });
+    } else {
+      console.error('Firestore не инициализирован, пропускаем загрузку роли пользователя');
+    }
   } else {
     if (window.location.pathname.includes('dstimes.html')) {
       window.location.href = 'login.html';
@@ -298,36 +350,69 @@ if (postForm) {
     e.preventDefault();
     const title = document.getElementById('post-title').value;
     const content = document.getElementById('post-content').value;
+    const imageFile = document.getElementById('post-image').files[0];
     const message = document.getElementById('post-message');
 
     const user = auth.currentUser;
     if (!user) {
-      message.textContent = 'Ошибка: Вы должны быть авторизованы.';
+      showModal('Ошибка: Вы должны быть авторизованы.', false);
       return;
     }
 
     if (!isAdmin) {
-      message.textContent = 'Ошибка: Только администраторы могут добавлять посты.';
-      message.style.color = '#ff0000';
+      showModal('Ошибка: Только администраторы могут добавлять посты.', false);
       return;
     }
 
-    db.collection('posts').add({
+    if (!db) {
+      showModal('Ошибка: Firestore не инициализирован.', false);
+      return;
+    }
+
+    if (!storage) {
+      showModal('Ошибка: Firebase Storage не инициализирован.', false);
+      return;
+    }
+
+    const postData = {
       title: title,
       content: content,
       author: user.displayName || 'Аноним',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    })
-      .then(() => {
-        message.textContent = 'Пост успешно добавлен!';
-        message.style.color = '#28a745';
-        postForm.reset();
-        loadPosts();
-      })
-      .catch((error) => {
-        message.textContent = `Ошибка: ${error.message}`;
-        message.style.color = '#ff0000';
-      });
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      imageUrl: null
+    };
+
+    // Если есть изображение, загружаем его в Firebase Storage
+    if (imageFile) {
+      const storageRef = storage.ref(`posts/${Date.now()}_${imageFile.name}`);
+      storageRef.put(imageFile)
+        .then((snapshot) => {
+          return snapshot.ref.getDownloadURL();
+        })
+        .then((downloadURL) => {
+          postData.imageUrl = downloadURL;
+          return db.collection('posts').add(postData);
+        })
+        .then(() => {
+          showModal('Пост успешно добавлен!');
+          postForm.reset();
+          loadPosts();
+        })
+        .catch((error) => {
+          showModal(`Ошибка: ${error.message}`, false);
+        });
+    } else {
+      // Если изображения нет, просто добавляем пост
+      db.collection('posts').add(postData)
+        .then(() => {
+          showModal('Пост успешно добавлен!');
+          postForm.reset();
+          loadPosts();
+        })
+        .catch((error) => {
+          showModal(`Ошибка: ${error.message}`, false);
+        });
+    }
   });
 }
 
@@ -342,8 +427,12 @@ if (editPostForm) {
     const message = document.getElementById('edit-post-message');
 
     if (!isAdmin) {
-      message.textContent = 'Ошибка: Только администраторы могут редактировать посты.';
-      message.style.color = '#ff0000';
+      showModal('Ошибка: Только администраторы могут редактировать посты.', false);
+      return;
+    }
+
+    if (!db) {
+      showModal('Ошибка: Firestore не инициализирован.', false);
       return;
     }
 
@@ -353,14 +442,12 @@ if (editPostForm) {
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     })
       .then(() => {
-        message.textContent = 'Пост успешно обновлён!';
-        message.style.color = '#28a745';
+        showModal('Пост успешно обновлён!');
         document.getElementById('edit-post-form-container').style.display = 'none';
         document.getElementById('post-form-container').style.display = 'block';
       })
       .catch((error) => {
-        message.textContent = `Ошибка: ${error.message}`;
-        message.style.color = '#ff0000';
+        showModal(`Ошибка: ${error.message}`, false);
       });
   });
 }
@@ -380,6 +467,11 @@ function loadPosts() {
   const postsList = document.getElementById('posts-list');
   if (!postsList) return;
 
+  if (!db) {
+    console.error('Firestore не инициализирован, пропускаем загрузку постов');
+    return;
+  }
+
   db.collection('posts')
     .orderBy('createdAt', 'desc')
     .onSnapshot((snapshot) => {
@@ -392,6 +484,7 @@ function loadPosts() {
         postElement.innerHTML = `
           <h4>${post.title}</h4>
           <p>${post.content}</p>
+          ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image">` : ''}
           <p><small>Автор: ${post.author} | Дата: ${post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Неизвестно'}</small></p>
           ${isAdmin ? `
             <div class="post-actions">
