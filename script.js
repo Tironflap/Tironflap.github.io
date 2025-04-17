@@ -69,7 +69,7 @@ let auth;
 try {
   if (typeof firebase !== 'undefined') {
     const firebaseConfig = {
-      apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb9ODs", // Замени на правильный ключ
+      apiKey: "новый-ключ-из-firebase-console", // Замени на правильный ключ
       authDomain: "ds-times-c9894.firebaseapp.com",
       projectId: "ds-times-c9894",
       storageBucket: "ds-times-c9894.appspot.com",
@@ -87,11 +87,25 @@ try {
     if (registerForm) {
       registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const nickname = document.getElementById('nickname').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const message = document.getElementById('register-message');
 
+        // Проверка длины ника
+        if (nickname.length < 3) {
+          message.textContent = 'Ошибка: Ник/Имя должен содержать минимум 3 символа.';
+          return;
+        }
+
         auth.createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            // После успешной регистрации обновляем профиль пользователя
+            const user = userCredential.user;
+            return user.updateProfile({
+              displayName: nickname
+            });
+          })
           .then(() => {
             message.textContent = 'Регистрация успешна! Перенаправляем...';
             setTimeout(() => window.location.href = 'dstimes.html', 2000);
