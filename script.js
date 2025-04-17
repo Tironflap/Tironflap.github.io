@@ -69,7 +69,7 @@ let auth;
 try {
   if (typeof firebase !== 'undefined') {
     const firebaseConfig = {
-      apiKey: "новый-ключ-из-firebase-console", // Замени на правильный ключ
+      apiKey: "AIzaSyC1vAXe25SBaDYejz5XKUL4tfNRmPM9h9g", // Замени на правильный ключ
       authDomain: "ds-times-c9894.firebaseapp.com",
       projectId: "ds-times-c9894",
       storageBucket: "ds-times-c9894.appspot.com",
