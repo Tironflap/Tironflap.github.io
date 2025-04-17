@@ -23,11 +23,13 @@
     
     <div id="post-form-container" style="display: none;">
       <h3>Добавить новый пост</h3>
-      <form id="post-form">
+      <form id="post-form" enctype="multipart/form-data">
         <label for="post-title">Заголовок:</label>
         <input type="text" id="post-title" required>
         <label for="post-content">Содержание:</label>
         <textarea id="post-content" required></textarea>
+        <label for="post-image">Изображение (опционально):</label>
+        <input type="file" id="post-image" accept="image/*">
         <button type="submit">Опубликовать</button>
       </form>
       <p id="post-message"></p>
@@ -47,12 +49,21 @@
       <p id="edit-post-message"></p>
     </div>
 
+    <!-- Модальное окно для уведомлений -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <p id="modal-message"></p>
+      </div>
+    </div>
+
     <h3>Посты</h3>
     <div id="posts-list"></div>
   </main>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   <script src="script.js" defer></script>
 </body>
 </html>
