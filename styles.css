@@ -151,7 +151,8 @@ article {
 
 #login-message,
 #register-message,
-#post-message {
+#post-message,
+#edit-post-message {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -172,7 +173,8 @@ article {
 
 body.dark-theme #login-message,
 body.dark-theme #register-message,
-body.dark-theme #post-message {
+body.dark-theme #post-message,
+body.dark-theme #edit-post-message {
   color: #ff6666;
   background-color: rgba(255, 102, 102, 0.2);
 }
@@ -240,4 +242,71 @@ body.dark-theme .post p {
 
 body.dark-theme .post small {
   color: #999;
+}
+
+/* Стили для кнопок редактирования и удаления */
+.post-actions {
+  margin-top: 0.5em;
+  display: flex;
+  gap: 0.5em;
+}
+
+.edit-post, .delete-post {
+  padding: 0.5em 1em;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.edit-post {
+  background-color: #007bff;
+  color: white;
+}
+
+.edit-post:hover {
+  background-color: #0056b3;
+}
+
+body.dark-theme .edit-post {
+  background-color: #66b0ff;
+}
+
+body.dark-theme .edit-post:hover {
+  background-color: #99ccff;
+}
+
+.delete-post {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-post:hover {
+  background-color: #b02a37;
+}
+
+body.dark-theme .delete-post {
+  background-color: #ff6666;
+}
+
+body.dark-theme .delete-post:hover {
+  background-color: #ff9999;
+}
+
+#cancel-edit {
+  background-color: #6c757d;
+  margin-top: 0.5em;
+}
+
+#cancel-edit:hover {
+  background-color: #5a6268;
+}
+
+body.dark-theme #cancel-edit {
+  background-color: #5a5a5a;
+}
+
+body.dark-theme #cancel-edit:hover {
+  background-color: #777;
 }
