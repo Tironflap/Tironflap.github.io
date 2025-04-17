@@ -50,37 +50,37 @@ main {
   max-width: 800px;
   margin: 0 auto;
   padding: 2em 1em;
-  min-height: calc(100vh - 150px); /* Учитываем высоту header */
+  min-height: calc(100vh - 150px);
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Центрируем форму по вертикали */
-  align-items: center; /* Центрируем по горизонтали */
+  justify-content: center;
+  align-items: center;
 }
 
 form {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Центрируем элементы формы */
-  max-width: 450px; /* Увеличиваем ширину формы */
-  width: 100%; /* Форма адаптируется к экрану */
-  margin: 0 auto; /* Центрируем форму на странице */
-  padding: 2em; /* Увеличиваем внутренние отступы */
-  background-color: #fff; /* Добавляем фон для формы */
-  border-radius: 12px; /* Увеличиваем скругление углов */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Усиливаем тень */
+  align-items: center;
+  max-width: 450px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2em;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 body.dark-theme form {
-  background-color: #2a2a2a; /* Фон формы в тёмной теме */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Тень в тёмной теме */
+  background-color: #2a2a2a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 label {
-  align-self: flex-start; /* Лейблы выравниваем по левому краю */
-  margin-bottom: 0.5em; /* Увеличиваем отступ под лейблом */
-  font-size: 1.1em; /* Увеличиваем размер шрифта */
-  font-weight: bold; /* Делаем текст жирным */
+  align-self: flex-start;
+  margin-bottom: 0.5em;
+  font-size: 1.1em;
+  font-weight: bold;
   color: #333;
   transition: color 0.3s ease;
 }
@@ -89,29 +89,35 @@ body.dark-theme label {
   color: #e0e0e0;
 }
 
-input {
-  width: 100%; /* Поля ввода занимают всю ширину формы */
-  max-width: 350px; /* Увеличиваем максимальную ширину */
-  padding: 0.75em; /* Увеличиваем внутренние отступы */
-  margin-bottom: 1.5em; /* Увеличиваем отступ снизу */
+input, textarea {
+  width: 100%;
+  max-width: 350px;
+  padding: 0.75em;
+  margin-bottom: 1.5em;
   border: 1px solid #ccc;
-  border-radius: 6px; /* Увеличиваем скругление углов */
+  border-radius: 6px;
   background-color: white;
   color: #333;
   font-size: 1em;
-  box-sizing: border-box; /* Учитываем padding и border в ширине */
+  box-sizing: border-box;
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-body.dark-theme input {
+body.dark-theme input,
+body.dark-theme textarea {
   background-color: #3a3a3a;
   color: #e0e0e0;
   border-color: #555;
 }
 
+textarea {
+  height: 100px;
+  resize: vertical;
+}
+
 button {
-  width: 100%; /* Кнопка занимает ту же ширину, что и поля ввода */
-  max-width: 350px; /* Увеличиваем ширину кнопки */
+  width: 100%;
+  max-width: 350px;
   padding: 0.75em;
   border: none;
   border-radius: 6px;
@@ -143,29 +149,95 @@ article {
   cursor: pointer;
 }
 
-/* Стили для сообщений об ошибках */
 #login-message,
-#register-message {
-  display: flex; /* Используем flex для центрирования */
-  justify-content: center; /* Центрируем текст по горизонтали */
-  align-items: center; /* Центрируем текст по вертикали внутри блока */
+#register-message,
+#post-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: #ff0000;
   margin-top: 0.5em;
-  margin-bottom: 1em; /* Увеличиваем отступ снизу */
-  padding: 0.75em; /* Увеличиваем внутренние отступы */
+  margin-bottom: 1em;
+  padding: 0.75em;
   min-height: 1.5em;
-  width: 100%; /* Сообщение занимает всю ширину формы */
-  max-width: 350px; /* Увеличиваем ширину сообщения */
-  text-align: center; /* Дополнительно центрируем текст */
-  font-size: 1em; /* Увеличиваем размер шрифта */
-  font-weight: bold; /* Делаем текст жирным */
-  background-color: rgba(255, 0, 0, 0.1); /* Лёгкий красный фон */
-  border-radius: 6px; /* Увеличиваем скругление углов */
-  transition: background-color 0.3s ease;
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+  font-size: 1em;
+  font-weight: bold;
+  background-color: rgba(255, 0, 0, 0.1);
+  border-radius: 6px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body.dark-theme #login-message,
-body.dark-theme #register-message {
+body.dark-theme #register-message,
+body.dark-theme #post-message {
   color: #ff6666;
-  background-color: rgba(255, 102, 102, 0.2); /* Лёгкий красный фон в тёмной теме */
+  background-color: rgba(255, 102, 102, 0.2);
+}
+
+#forgot-password {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9em;
+  transition: color 0.3s ease;
+}
+
+#forgot-password:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+body.dark-theme #forgot-password {
+  color: #66b0ff;
+}
+
+body.dark-theme #forgot-password:hover {
+  color: #99ccff;
+}
+
+/* Стили для постов */
+.post {
+  width: 100%;
+  max-width: 600px;
+  margin: 1em 0;
+  padding: 1em;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark-theme .post {
+  background-color: #2a2a2a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.post h4 {
+  margin: 0 0 0.5em;
+  font-size: 1.3em;
+  color: #333;
+}
+
+body.dark-theme .post h4 {
+  color: #e0e0e0;
+}
+
+.post p {
+  margin: 0.5em 0;
+  color: #555;
+}
+
+body.dark-theme .post p {
+  color: #b0b0b0;
+}
+
+.post small {
+  color: #777;
+  font-size: 0.9em;
+}
+
+body.dark-theme .post small {
+  color: #999;
 }
