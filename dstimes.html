@@ -2,25 +2,45 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Digital School Times</title>
+  <title>DS Times</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
-    <h1>Добро пожаловать в Digital School Times!</h1>
+    <h1>DS Times</h1>
     <nav>
       <a href="dstimes.html">Главная</a>
       <a href="news.html">Новости</a>
       <a href="register.html">Регистрация</a>
       <a href="login.html">Вход</a>
       <a href="settings.html">Настройки</a>
+      <a href="#" id="logout">Выход</a>
     </nav>
   </header>
   <main>
-    <p>Это Digital School Times, где я делюсь мыслями и идеями. Зарегистрируйтесь, чтобы оставлять комментарии!</p>
+    <h2>Добро пожаловать!</h2>
+    <p id="user-greeting"></p>
+    
+    <!-- Форма для добавления постов, видна только админам -->
+    <div id="post-form-container" style="display: none;">
+      <h3>Добавить новый пост</h3>
+      <form id="post-form">
+        <label for="post-title">Заголовок:</label>
+        <input type="text" id="post-title" required>
+        <label for="post-content">Содержание:</label>
+        <textarea id="post-content" required></textarea>
+        <button type="submit">Опубликовать</button>
+      </form>
+      <p id="post-message"></p>
+    </div>
+
+    <!-- Список постов -->
+    <h3>Посты</h3>
+    <div id="posts-list"></div>
   </main>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
