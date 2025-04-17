@@ -97,11 +97,10 @@ try {
             const user = userCredential.user;
             return Promise.all([
               user.updateProfile({ displayName: nickname }),
-              // Сохраняем данные пользователя в Firestore с ролью по умолчанию "user"
               db.collection('users').doc(user.uid).set({
                 nickname: nickname,
                 email: email,
-                role: 'user', // По умолчанию пользователь — не админ
+                role: 'user',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
               })
             ]);
@@ -204,9 +203,9 @@ try {
     }
 
     // Проверка авторизации и роли пользователя
+    let isAdmin = false;
     auth.onAuthStateChanged((user) => {
       if (user) {
-        // Пользователь авторизован
         const userGreeting = document.getElementById('user-greeting');
         if (userGreeting) {
           userGreeting.textContent = `Привет, ${user.displayName || 'Пользователь'}!`;
@@ -217,20 +216,18 @@ try {
           .then((doc) => {
             if (doc.exists) {
               const userData = doc.data();
+              isAdmin = userData.role === 'admin';
               const postFormContainer = document.getElementById('post-form-container');
-              if (userData.role === 'admin' && postFormContainer) {
-                postFormContainer.style.display = 'block'; // Показываем форму для админов
+              if (isAdmin && postFormContainer) {
+                postFormContainer.style.display = 'block';
               }
+              loadPosts(); // Загружаем посты после определения роли
             }
           })
           .catch((error) => {
             console.error('Ошибка при получении роли пользователя:', error);
           });
-
-        // Загружаем посты
-        loadPosts();
       } else {
-        // Пользователь не авторизован, перенаправляем на страницу входа
         if (window.location.pathname.includes('dstimes.html')) {
           window.location.href = 'login.html';
         }
@@ -263,32 +260,72 @@ try {
           return;
         }
 
-        // Проверяем роль пользователя перед добавлением поста
-        db.collection('users').doc(user.uid).get()
-          .then((doc) => {
-            if (doc.exists && doc.data().role === 'admin') {
-              // Добавляем пост в Firestore
-              db.collection('posts').add({
-                title: title,
-                content: content,
-                author: user.displayName || 'Аноним',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-              })
-                .then(() => {
-                  message.textContent = 'Пост успешно добавлен!';
-                  message.style.color = '#28a745';
-                  postForm.reset();
-                  loadPosts(); // Обновляем список постов
-                })
-                .catch((error) => {
-                  message.textContent = `Ошибка: ${error.message}`;
-                  message.style.color = '#ff0000';
-                });
-            } else {
-              message.textContent = 'Ошибка: Только администраторы могут добавлять посты.';
-              message.style.color = '#ff0000';
-            }
+        if (!isAdmin) {
+          message.textContent = 'Ошибка: Только администраторы могут добавлять посты.';
+          message.style.color = '#ff0000';
+          return;
+        }
+
+        db.collection('posts').add({
+          title: title,
+          content: content,
+          author: user.displayName || 'Аноним',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+          .then(() => {
+            message.textContent = 'Пост успешно добавлен!';
+            message.style.color = '#28a745';
+            postForm.reset();
+            loadPosts();
+          })
+          .catch((error) => {
+            message.textContent = `Ошибка: ${error.message}`;
+            message.style.color = '#ff0000';
           });
+      });
+    }
+
+    // Редактирование поста
+    const editPostForm = document.getElementById('edit-post-form');
+    if (editPostForm) {
+      editPostForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const postId = document.getElementById('edit-post-id').value;
+        const title = document.getElementById('edit-post-title').value;
+        const content = document.getElementById('edit-post-content').value;
+        const message = document.getElementById('edit-post-message');
+
+        if (!isAdmin) {
+          message.textContent = 'Ошибка: Только администраторы могут редактировать посты.';
+          message.style.color = '#ff0000';
+          return;
+        }
+
+        db.collection('posts').doc(postId).update({
+          title: title,
+          content: content,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+          .then(() => {
+            message.textContent = 'Пост успешно обновлён!';
+            message.style.color = '#28a745';
+            document.getElementById('edit-post-form-container').style.display = 'none';
+            document.getElementById('post-form-container').style.display = 'block';
+          })
+          .catch((error) => {
+            message.textContent = `Ошибка: ${error.message}`;
+            message.style.color = '#ff0000';
+          });
+      });
+    }
+
+    // Отмена редактирования
+    const cancelEditButton = document.getElementById('cancel-edit');
+    if (cancelEditButton) {
+      cancelEditButton.addEventListener('click', () => {
+        document.getElementById('edit-post-form-container').style.display = 'none';
+        document.getElementById('post-form-container').style.display = 'block';
+        document.getElementById('edit-post-message').textContent = '';
       });
     }
 
@@ -300,17 +337,50 @@ try {
       db.collection('posts')
         .orderBy('createdAt', 'desc')
         .onSnapshot((snapshot) => {
-          postsList.innerHTML = ''; // Очищаем список
+          postsList.innerHTML = '';
           snapshot.forEach((doc) => {
             const post = doc.data();
+            const postId = doc.id;
             const postElement = document.createElement('div');
             postElement.className = 'post';
             postElement.innerHTML = `
               <h4>${post.title}</h4>
               <p>${post.content}</p>
               <p><small>Автор: ${post.author} | Дата: ${post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Неизвестно'}</small></p>
+              ${isAdmin ? `
+                <div class="post-actions">
+                  <button class="edit-post" data-id="${postId}">Редактировать</button>
+                  <button class="delete-post" data-id="${postId}">Удалить</button>
+                </div>
+              ` : ''}
             `;
             postsList.appendChild(postElement);
+
+            // Обработчики для кнопок редактирования и удаления
+            if (isAdmin) {
+              const editButton = postElement.querySelector('.edit-post');
+              const deleteButton = postElement.querySelector('.delete-post');
+
+              editButton.addEventListener('click', () => {
+                document.getElementById('edit-post-id').value = postId;
+                document.getElementById('edit-post-title').value = post.title;
+                document.getElementById('edit-post-content').value = post.content;
+                document.getElementById('edit-post-form-container').style.display = 'block';
+                document.getElementById('post-form-container').style.display = 'none';
+              });
+
+              deleteButton.addEventListener('click', () => {
+                if (confirm('Вы уверены, что хотите удалить этот пост?')) {
+                  db.collection('posts').doc(postId).delete()
+                    .then(() => {
+                      console.log('Пост удалён');
+                    })
+                    .catch((error) => {
+                      console.error('Ошибка при удалении поста:', error);
+                    });
+                }
+              });
+            }
           });
         }, (error) => {
           console.error('Ошибка при загрузке постов:', error);
