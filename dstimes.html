@@ -21,7 +21,6 @@
     <h2>Добро пожаловать!</h2>
     <p id="user-greeting"></p>
     
-    <!-- Форма для добавления постов, видна только админам -->
     <div id="post-form-container" style="display: none;">
       <h3>Добавить новый пост</h3>
       <form id="post-form">
@@ -34,7 +33,6 @@
       <p id="post-message"></p>
     </div>
 
-    <!-- Форма для редактирования постов, скрыта по умолчанию -->
     <div id="edit-post-form-container" style="display: none;">
       <h3>Редактировать пост</h3>
       <form id="edit-post-form">
@@ -49,13 +47,12 @@
       <p id="edit-post-message"></p>
     </div>
 
-    <!-- Список постов -->
     <h3>Посты</h3>
     <div id="posts-list"></div>
   </main>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
