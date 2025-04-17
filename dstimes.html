@@ -34,6 +34,21 @@
       <p id="post-message"></p>
     </div>
 
+    <!-- Форма для редактирования постов, скрыта по умолчанию -->
+    <div id="edit-post-form-container" style="display: none;">
+      <h3>Редактировать пост</h3>
+      <form id="edit-post-form">
+        <input type="hidden" id="edit-post-id">
+        <label for="edit-post-title">Заголовок:</label>
+        <input type="text" id="edit-post-title" required>
+        <label for="edit-post-content">Содержание:</label>
+        <textarea id="edit-post-content" required></textarea>
+        <button type="submit">Сохранить</button>
+        <button type="button" id="cancel-edit">Отмена</button>
+      </form>
+      <p id="edit-post-message"></p>
+    </div>
+
     <!-- Список постов -->
     <h3>Посты</h3>
     <div id="posts-list"></div>
