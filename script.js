@@ -66,7 +66,7 @@ try {
   if (typeof firebase !== 'undefined') {
     console.log('Firebase SDK подключён, инициализируем...');
     const firebaseConfig = {
-      apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb9ODs",
+      apiKey: "AIzaSyC1vAXe25SBaDYejz5XKUL4tfNRmPM9h9g",
       authDomain: "ds-times-c9894.firebaseapp.com",
       projectId: "ds-times-c9894",
       storageBucket: "ds-times-c9894.appspot.com",
@@ -322,9 +322,9 @@ auth.onAuthStateChanged((user) => {
           if (doc.exists) {
             const userData = doc.data();
             isAdmin = userData.role === 'admin';
-            const postFormContainer = document.getElementById('post-form-container');
-            if (isAdmin && postFormContainer) {
-              postFormContainer.style.display = 'block';
+            const addPostBtn = document.getElementById('add-post-btn');
+            if (addPostBtn) {
+              addPostBtn.style.display = isAdmin ? 'flex' : 'none';
             }
             loadPosts();
           }
@@ -350,6 +350,35 @@ if (logoutLink) {
     auth.signOut().then(() => {
       window.location.href = 'login.html';
     });
+  });
+}
+
+// Открытие/закрытие формы добавления поста
+const addPostBtn = document.getElementById('add-post-btn');
+const postFormContainer = document.getElementById('post-form-container');
+const closePopup = document.querySelector('.close-popup');
+
+if (addPostBtn && postFormContainer && closePopup) {
+  addPostBtn.addEventListener('click', () => {
+    if (!isAdmin) {
+      showModal('Ошибка: Только администраторы могут добавлять посты.', false);
+      return;
+    }
+    postFormContainer.style.display = 'block';
+  });
+
+  closePopup.addEventListener('click', () => {
+    postFormContainer.style.display = 'none';
+    document.getElementById('post-form').reset();
+    document.getElementById('post-message').textContent = '';
+  });
+
+  window.addEventListener('click', (event) => {
+    if (event.target === postFormContainer) {
+      postFormContainer.style.display = 'none';
+      document.getElementById('post-form').reset();
+      document.getElementById('post-message').textContent = '';
+    }
   });
 }
 
@@ -400,6 +429,7 @@ if (postForm) {
         .then(() => {
           showModal('Пост успешно добавлен!');
           postForm.reset();
+          postFormContainer.style.display = 'none';
           loadPosts();
         })
         .catch((error) => {
@@ -413,6 +443,7 @@ if (postForm) {
         .then(() => {
           showModal('Пост успешно добавлен!');
           postForm.reset();
+          postFormContainer.style.display = 'none';
           loadPosts();
         })
         .catch((error) => {
@@ -450,7 +481,7 @@ if (editPostForm) {
       .then(() => {
         showModal('Пост успешно обновлён!');
         document.getElementById('edit-post-form-container').style.display = 'none';
-        document.getElementById('post-form-container').style.display = 'block';
+        document.getElementById('post-form-container').style.display = 'none';
       })
       .catch((error) => {
         showModal(`Ошибка: ${error.message}`, false);
@@ -463,7 +494,7 @@ const cancelEditButton = document.getElementById('cancel-edit');
 if (cancelEditButton) {
   cancelEditButton.addEventListener('click', () => {
     document.getElementById('edit-post-form-container').style.display = 'none';
-    document.getElementById('post-form-container').style.display = 'block';
+    document.getElementById('post-form-container').style.display = 'none';
     document.getElementById('edit-post-message').textContent = '';
   });
 }
