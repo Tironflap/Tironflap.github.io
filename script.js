@@ -66,7 +66,7 @@ try {
   if (typeof firebase !== 'undefined') {
     console.log('Firebase SDK подключён, инициализируем...');
     const firebaseConfig = {
-      apiKey: "AIzaSyC1vAXe25SBaDYejz5XKUL4tfNRmPM9h9g",
+      apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb9ODs",
       authDomain: "ds-times-c9894.firebaseapp.com",
       projectId: "ds-times-c9894",
       storageBucket: "ds-times-c9894.appspot.com",
