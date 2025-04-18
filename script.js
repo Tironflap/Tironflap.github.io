@@ -66,13 +66,13 @@ try {
   if (typeof firebase !== 'undefined') {
     console.log('Firebase SDK подключён, инициализируем...');
     const firebaseConfig = {
-      apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb90Ds", // Убедись, что это новый apiKey
-      authDomain: "ds-times-c9894.firebaseapp.com", // Убедись, что это новый authDomain
-      projectId: "ds-times-c9894", // Убедись, что это новый projectId
-      storageBucket: "ds-times-c9894.appspot.com", // Убедись, что это новый storageBucket
-      messagingSenderId: "1060212009626", // Убедись, что это новый messagingSenderId
-      appId: "1:1060212009626:web:1eee1200c7962b92060d23", // Убедись, что это новый appId
-      measurementId: "G-FV1DTL5TRW" // Убедись, что это новый measurementId
+      apiKey: "AIzaSyC1vAXe25SBaDYejz5XKUL4tfNRmPM9h9g",
+      authDomain: "ds-times-c9894.firebaseapp.com",
+      projectId: "ds-times-c9894",
+      storageBucket: "ds-times-c9894.appspot.com",
+      messagingSenderId: "1060212009626",
+      appId: "1:1060212009626:web:1eee1200c7962b92060d23",
+      measurementId: "G-FV1DTL5TRW"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -93,7 +93,6 @@ try {
       throw new Error('Firestore not available');
     }
 
-    // Проверка доступности Firebase Storage
     if (typeof firebase.storage === 'function') {
       storage = firebase.storage();
       console.log('Firebase Storage успешно инициализирован');
@@ -388,7 +387,6 @@ if (postForm) {
       imageUrl: null
     };
 
-    // Если Storage доступен и есть изображение, загружаем его
     if (storage && imageFile) {
       const storageRef = storage.ref(`posts/${Date.now()}_${imageFile.name}`);
       storageRef.put(imageFile)
@@ -408,7 +406,6 @@ if (postForm) {
           showModal(`Ошибка: ${error.message}`, false);
         });
     } else {
-      // Если Storage недоступен или нет изображения, добавляем пост без изображения
       if (imageFile) {
         showModal('Ошибка: Firebase Storage недоступен, изображение не загружено.', false);
       }
@@ -491,16 +488,10 @@ function loadPosts() {
         const postElement = document.createElement('div');
         postElement.className = 'post';
         postElement.innerHTML = `
-      snapshot.forEach((doc) => {
-        const post = doc.data();
-        const postId = doc.id;
-        const postElement = document.createElement('div');
-        postElement.className = 'post';
-        postElement.innerHTML = `
-          <h4>${post.title}</h4>
-          <p>${post.content}</p>
+          <h4>${post.title || 'Без заголовка'}</h4>
+          <p>${post.content || 'Без содержания'}</p>
           ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image">` : ''}
-          <p><small>Автор: ${post.author} | Дата: ${post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Неизвестно'}</small></p>
+          <p><small>Автор: ${post.author || 'Аноним'} | Дата: ${post.createdAt && post.createdAt.toDate ? post.createdAt.toDate().toLocaleString() : 'Неизвестно'}</small></p>
           ${isAdmin ? `
             <div class="post-actions">
               <button class="edit-post" data-id="${postId}">Редактировать</button>
@@ -516,11 +507,12 @@ function loadPosts() {
 
           editButton.addEventListener('click', () => {
             document.getElementById('edit-post-id').value = postId;
-            document.getElementById('edit-post-title').value = post.title;
-            document.getElementById('edit-post-content').value = post.content;
+            document.getElementById('edit-post-title').value = post.title || '';
+            document.getElementById('edit-post-content').value = post.content || '';
             document.getElementById('edit-post-form-container').style.display = 'block';
             document.getElementById('post-form-container').style.display = 'none';
           });
+
           deleteButton.addEventListener('click', () => {
             if (confirm('Вы уверены, что хотите удалить этот пост?')) {
               db.collection('posts').doc(postId).delete()
