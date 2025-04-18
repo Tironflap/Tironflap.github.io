@@ -66,7 +66,7 @@ try {
   if (typeof firebase !== 'undefined') {
     console.log('Firebase SDK подключён, инициализируем...');
     const firebaseConfig = {
-      apiKey: "AIzaSyC1vAXe25SBaDYejz5XKUL4tfNRmPM9h9g", // Убедись, что это новый apiKey
+      apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb90Ds", // Убедись, что это новый apiKey
       authDomain: "ds-times-c9894.firebaseapp.com", // Убедись, что это новый authDomain
       projectId: "ds-times-c9894", // Убедись, что это новый projectId
       storageBucket: "ds-times-c9894.appspot.com", // Убедись, что это новый storageBucket
