@@ -489,4 +489,62 @@ function loadPosts() {
         const post = doc.data();
         const postId = doc.id;
         const postElement = document.createElement('div');
-        postElement
+        postElement.className = 'post';
+        postElement.innerHTML = `
+      snapshot.forEach((doc) => {
+        const post = doc.data();
+        const postId = doc.id;
+        const postElement = document.createElement('div');
+        postElement.className = 'post';
+        postElement.innerHTML = `
+          <h4>${post.title}</h4>
+          <p>${post.content}</p>
+          ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image">` : ''}
+          <p><small>Автор: ${post.author} | Дата: ${post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Неизвестно'}</small></p>
+          ${isAdmin ? `
+            <div class="post-actions">
+              <button class="edit-post" data-id="${postId}">Редактировать</button>
+              <button class="delete-post" data-id="${postId}">Удалить</button>
+            </div>
+          ` : ''}
+        `;
+        postsList.appendChild(postElement);
+
+        if (isAdmin) {
+          const editButton = postElement.querySelector('.edit-post');
+          const deleteButton = postElement.querySelector('.delete-post');
+
+          editButton.addEventListener('click', () => {
+            document.getElementById('edit-post-id').value = postId;
+            document.getElementById('edit-post-title').value = post.title;
+            document.getElementById('edit-post-content').value = post.content;
+            document.getElementById('edit-post-form-container').style.display = 'block';
+            document.getElementById('post-form-container').style.display = 'none';
+          });
+          deleteButton.addEventListener('click', () => {
+            if (confirm('Вы уверены, что хотите удалить этот пост?')) {
+              db.collection('posts').doc(postId).delete()
+                .then(() => {
+                  console.log('Пост удалён');
+                })
+                .catch((error) => {
+                  console.error('Ошибка при удалении поста:', error);
+                });
+            }
+          });
+        }
+      });
+    }, (error) => {
+      console.error('Ошибка при загрузке постов:', error);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    console.log('DOM fully loaded. Initializing theme...');
+    applyTheme();
+    toggleTheme();
+  } catch (error) {
+    console.error('Ошибка при инициализации темы:', error);
+  }
+});
