@@ -66,7 +66,7 @@ try {
   if (typeof firebase !== 'undefined') {
     console.log('Firebase SDK подключён, инициализируем...');
     const firebaseConfig = {
-      apiKey: "AIzaSyBRseocpR2cQpBIERspynlwxD9ezrb9ODs", // Убедись, что это новый apiKey
+      apiKey: "AIzaSyC1vAXe25SBaDYejz5XKUL4tfNRmPM9h9g", // Убедись, что это новый apiKey
       authDomain: "ds-times-c9894.firebaseapp.com", // Убедись, что это новый authDomain
       projectId: "ds-times-c9894", // Убедись, что это новый projectId
       storageBucket: "ds-times-c9894.appspot.com", // Убедись, что это новый storageBucket
@@ -93,12 +93,13 @@ try {
       throw new Error('Firestore not available');
     }
 
+    // Проверка доступности Firebase Storage
     if (typeof firebase.storage === 'function') {
       storage = firebase.storage();
       console.log('Firebase Storage успешно инициализирован');
     } else {
-      console.error('Storage не доступен: firebase.storage не является функцией');
-      throw new Error('Storage not available');
+      console.warn('Firebase Storage не доступен. Функция загрузки изображений отключена.');
+      storage = null;
     }
   } else {
     console.error('Firebase SDK не подключён на этой странице');
@@ -118,6 +119,16 @@ try {
 // Функция для показа модального окна
 function showModal(message, isSuccess = true) {
   const modal = document.getElementById('modal');
+  if (!modal) {
+    console.warn('Модальное окно не найдено, отображаем сообщение в элементе message');
+    const messageElement = document.getElementById('post-message') || document.getElementById('edit-post-message') || document.getElementById('register-message') || document.getElementById('login-message');
+    if (messageElement) {
+      messageElement.textContent = message;
+      messageElement.style.color = isSuccess ? '#28a745' : '#ff0000';
+    }
+    return;
+  }
+
   const modalMessage = document.getElementById('modal-message');
   modalMessage.textContent = message;
   modalMessage.style.color = isSuccess ? '#28a745' : '#ff0000';
@@ -350,7 +361,7 @@ if (postForm) {
     e.preventDefault();
     const title = document.getElementById('post-title').value;
     const content = document.getElementById('post-content').value;
-    const imageFile = document.getElementById('post-image').files[0];
+    const imageFile = document.getElementById('post-image') ? document.getElementById('post-image').files[0] : null;
     const message = document.getElementById('post-message');
 
     const user = auth.currentUser;
@@ -369,11 +380,6 @@ if (postForm) {
       return;
     }
 
-    if (!storage) {
-      showModal('Ошибка: Firebase Storage не инициализирован.', false);
-      return;
-    }
-
     const postData = {
       title: title,
       content: content,
@@ -382,8 +388,8 @@ if (postForm) {
       imageUrl: null
     };
 
-    // Если есть изображение, загружаем его в Firebase Storage
-    if (imageFile) {
+    // Если Storage доступен и есть изображение, загружаем его
+    if (storage && imageFile) {
       const storageRef = storage.ref(`posts/${Date.now()}_${imageFile.name}`);
       storageRef.put(imageFile)
         .then((snapshot) => {
@@ -402,7 +408,10 @@ if (postForm) {
           showModal(`Ошибка: ${error.message}`, false);
         });
     } else {
-      // Если изображения нет, просто добавляем пост
+      // Если Storage недоступен или нет изображения, добавляем пост без изображения
+      if (imageFile) {
+        showModal('Ошибка: Firebase Storage недоступен, изображение не загружено.', false);
+      }
       db.collection('posts').add(postData)
         .then(() => {
           showModal('Пост успешно добавлен!');
@@ -480,57 +489,4 @@ function loadPosts() {
         const post = doc.data();
         const postId = doc.id;
         const postElement = document.createElement('div');
-        postElement.className = 'post';
-        postElement.innerHTML = `
-          <h4>${post.title}</h4>
-          <p>${post.content}</p>
-          ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image">` : ''}
-          <p><small>Автор: ${post.author} | Дата: ${post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Неизвестно'}</small></p>
-          ${isAdmin ? `
-            <div class="post-actions">
-              <button class="edit-post" data-id="${postId}">Редактировать</button>
-              <button class="delete-post" data-id="${postId}">Удалить</button>
-            </div>
-          ` : ''}
-        `;
-        postsList.appendChild(postElement);
-
-        if (isAdmin) {
-          const editButton = postElement.querySelector('.edit-post');
-          const deleteButton = postElement.querySelector('.delete-post');
-
-          editButton.addEventListener('click', () => {
-            document.getElementById('edit-post-id').value = postId;
-            document.getElementById('edit-post-title').value = post.title;
-            document.getElementById('edit-post-content').value = post.content;
-            document.getElementById('edit-post-form-container').style.display = 'block';
-            document.getElementById('post-form-container').style.display = 'none';
-          });
-
-          deleteButton.addEventListener('click', () => {
-            if (confirm('Вы уверены, что хотите удалить этот пост?')) {
-              db.collection('posts').doc(postId).delete()
-                .then(() => {
-                  console.log('Пост удалён');
-                })
-                .catch((error) => {
-                  console.error('Ошибка при удалении поста:', error);
-                });
-            }
-          });
-        }
-      });
-    }, (error) => {
-      console.error('Ошибка при загрузке постов:', error);
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    console.log('DOM fully loaded. Initializing theme...');
-    applyTheme();
-    toggleTheme();
-  } catch (error) {
-    console.error('Ошибка при инициализации темы:', error);
-  }
-});
+        postElement
