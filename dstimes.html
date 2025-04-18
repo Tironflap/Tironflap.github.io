@@ -2,68 +2,66 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Digital School Times</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DS Times</title>
   <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header>
-    <h1>DS Times</h1>
-    <nav>
-      <a href="dstimes.html">Главная</a>
-      <a href="news.html">Новости</a>
-      <a href="register.html">Регистрация</a>
-      <a href="login.html">Вход</a>
-      <a href="settings.html">Настройки</a>
-      <a href="#" id="logout">Выход</a>
-    </nav>
-  </header>
-  <main>
-    <h2>Добро пожаловать!</h2>
-    <p id="user-greeting"></p>
-    
-    <div id="post-form-container" style="display: none;">
-      <h3>Добавить новый пост</h3>
-      <form id="post-form" enctype="multipart/form-data">
-        <label for="post-title">Заголовок:</label>
-        <input type="text" id="post-title" required>
-        <label for="post-content">Содержание:</label>
-        <textarea id="post-content" required></textarea>
-        <label for="post-image">Изображение (опционально):</label>
-        <input type="file" id="post-image" accept="image/*">
-        <button type="submit">Опубликовать</button>
-      </form>
-      <p id="post-message"></p>
-    </div>
-
-    <div id="edit-post-form-container" style="display: none;">
-      <h3>Редактировать пост</h3>
-      <form id="edit-post-form">
-        <input type="hidden" id="edit-post-id">
-        <label for="edit-post-title">Заголовок:</label>
-        <input type="text" id="edit-post-title" required>
-        <label for="edit-post-content">Содержание:</label>
-        <textarea id="edit-post-content" required></textarea>
-        <button type="submit">Сохранить</button>
-        <button type="button" id="cancel-edit">Отмена</button>
-      </form>
-      <p id="edit-post-message"></p>
-    </div>
-
-    <!-- Модальное окно для уведомлений -->
-    <div id="modal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <p id="modal-message"></p>
-      </div>
-    </div>
-
-    <h3>Посты</h3>
-    <div id="posts-list"></div>
-  </main>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-  <script src="script.js" defer></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Главная</a>
+      <a href="dstimes.html">DS Times</a>
+      <a href="#" id="logout">Выйти</a>
+      <span id="user-greeting"></span>
+      <label class="theme-toggle">
+        <input type="checkbox" id="theme-toggle">
+        <span class="slider"></span>
+      </label>
+      <button id="add-post-btn" class="add-post-btn">+</button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="post-form-container" class="popup">
+      <div class="popup-content">
+        <span class="close-popup">&times;</span>
+        <h2>Добавить пост</h2>
+        <form id="post-form">
+          <input type="text" id="post-title" placeholder="Заголовок" required>
+          <textarea id="post-content" placeholder="Содержание" required></textarea>
+          <input type="file" id="post-image" accept="image/*">
+          <button type="submit">Опубликовать</button>
+          <p id="post-message"></p>
+        </form>
+      </div>
+    </div>
+
+    <div id="edit-post-form-container" style="display: none;">
+      <h2>Редактировать пост</h2>
+      <form id="edit-post-form">
+        <input type="hidden" id="edit-post-id">
+        <input type="text" id="edit-post-title" placeholder="Заголовок" required>
+        <textarea id="edit-post-content" placeholder="Содержание" required></textarea>
+        <button type="submit">Сохранить</button>
+        <button type="button" id="cancel-edit">Отмена</button>
+        <p id="edit-post-message"></p>
+      </form>
+    </div>
+
+    <div id="posts-list"></div>
+  </main>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <p id="modal-message"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
