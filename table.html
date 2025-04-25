@@ -11,7 +11,7 @@
             padding: 10px;
         }
 
-        /* Стили, вдохновлённые shadcn/ui */
+        /* Стили, вдохновлённые shadcn/ui, с улучшенной читаемостью */
         table {
             border-collapse: collapse;
             width: 100%;
@@ -22,7 +22,7 @@
             background-color: white;
         }
         th, td {
-            padding: 12px 16px;
+            padding: 14px 18px; /* Увеличиваем отступы */
             text-align: left;
             border-bottom: 1px solid #e5e7eb;
             white-space: nowrap;
@@ -35,15 +35,15 @@
             font-weight: 600;
             color: #374151;
             text-transform: uppercase;
-            font-size: 0.75rem;
+            font-size: 0.875rem; /* 14px */
             letter-spacing: 0.05em;
         }
         td {
             color: #1f2937;
-            font-size: 0.875rem;
+            font-size: 1rem; /* 16px */
         }
         tr:hover td {
-            background-color: #f9fafb;
+            background-color: #f3f4f6;
         }
         th:first-child, td:first-child {
             border-top-left-radius: 8px;
@@ -192,13 +192,13 @@
             }
 
             th, td {
-                padding: 8px 12px;
-                font-size: 12px;
+                padding: 10px 14px; /* Уменьшаем, но не слишком */
+                font-size: 14px; /* Увеличиваем шрифт */
                 max-width: 100px;
             }
 
             .day-section h2 {
-                font-size: 16px;
+                font-size: 18px; /* Увеличиваем для лучшей читаемости */
                 margin: 10px 0;
             }
 
@@ -314,23 +314,23 @@
         function applyThemeToTable(color) {
             if (color === 'black') {
                 document.querySelectorAll('table').forEach(table => {
-                    table.style.backgroundColor = '#1f2937';
-                    table.style.boxShadow = '0 1px 3px rgba(255, 255, 255, 0.1)';
+                    table.style.backgroundColor = '#111827'; /* Очень тёмный фон */
+                    table.style.boxShadow = '0 1px 3px rgba(255, 255, 255, 0.2)';
                 });
                 document.querySelectorAll('th').forEach(th => {
-                    th.style.color = 'white';
-                    th.style.backgroundColor = '#374151';
-                    th.style.borderBottomColor = '#4b5563';
+                    th.style.color = '#f9fafb'; /* Светлый текст */
+                    th.style.backgroundColor = '#1f2937'; /* Чуть светлее фон */
+                    th.style.borderBottomColor = '#6b7280'; /* Более светлые границы */
                 });
                 document.querySelectorAll('td').forEach(td => {
-                    td.style.color = 'white';
-                    td.style.borderBottomColor = '#4b5563';
+                    td.style.color = '#f9fafb'; /* Светлый текст */
+                    td.style.borderBottomColor = '#6b7280';
                 });
                 document.querySelectorAll('tr:hover td').forEach(td => {
-                    td.style.backgroundColor = '#374151';
+                    td.style.backgroundColor = '#374151'; /* Цвет при наведении */
                 });
                 document.querySelectorAll('.day-section h2').forEach(h2 => {
-                    h2.style.color = 'white';
+                    h2.style.color = '#f9fafb';
                 });
             } else {
                 document.querySelectorAll('table').forEach(table => {
@@ -347,7 +347,7 @@
                     td.style.borderBottomColor = '#e5e7eb';
                 });
                 document.querySelectorAll('tr:hover td').forEach(td => {
-                    td.style.backgroundColor = '#f9fafb';
+                    td.style.backgroundColor = '#f3f4f6';
                 });
                 document.querySelectorAll('.day-section h2').forEach(h2 => {
                     h2.style.color = '#1f2937';
@@ -562,19 +562,19 @@
             
             document.body.style.backgroundColor = color;
             if (color === 'black') {
-                document.body.style.color = 'white';
+                document.body.style.color = '#f9fafb';
                 document.querySelector('.modal-content').style.backgroundColor = '#1f2937';
-                document.querySelector('.modal-content').style.color = 'white';
-                document.querySelectorAll('.filters label').forEach(label => label.style.color = 'white');
+                document.querySelector('.modal-content').style.color = '#f9fafb';
+                document.querySelectorAll('.filters label').forEach(label => label.style.color = '#f9fafb');
                 document.querySelectorAll('.filters select').forEach(select => {
-                    select.style.color = 'white';
+                    select.style.color = '#f9fafb';
                     select.style.backgroundColor = '#1f2937';
-                    select.style.borderColor = '#4b5563';
+                    select.style.borderColor = '#6b7280';
                 });
-                document.querySelector('.settings-btn').style.color = 'white';
+                document.querySelector('.settings-btn').style.color = '#f9fafb';
                 document.querySelector('.settings-btn').style.backgroundColor = '#1f2937';
-                document.querySelector('.settings-btn').style.borderColor = '#4b5563';
-                document.querySelector('.footer a').style.color = 'white';
+                document.querySelector('.settings-btn').style.borderColor = '#6b7280';
+                document.querySelector('.footer a').style.color = '#f9fafb';
             } else {
                 document.body.style.color = 'black';
                 document.querySelector('.modal-content').style.backgroundColor = 'white';
