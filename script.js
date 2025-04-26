@@ -2,6 +2,7 @@
 function applyTheme() {
   const savedTheme = localStorage.getItem('theme');
   const themeToggle = document.getElementById('theme-toggle');
+  const themeIcon = document.getElementById('theme-icon');
   let isDarkTheme;
 
   console.log('Applying theme... Saved theme:', savedTheme);
@@ -16,8 +17,10 @@ function applyTheme() {
 
   if (isDarkTheme) {
     document.body.classList.add('dark-theme');
+    if (themeIcon) themeIcon.textContent = '🌙';
   } else {
     document.body.classList.remove('dark-theme');
+    if (themeIcon) themeIcon.textContent = '☀️';
   }
 
   if (themeToggle) {
@@ -39,14 +42,17 @@ function toggleTheme() {
 
 function handleThemeChange() {
   const themeToggle = document.getElementById('theme-toggle');
+  const themeIcon = document.getElementById('theme-icon');
   const isDarkTheme = themeToggle.checked;
   console.log('Theme toggle changed. Is dark theme:', isDarkTheme);
   if (isDarkTheme) {
     document.body.classList.add('dark-theme');
     localStorage.setItem('theme', 'dark');
+    if (themeIcon) themeIcon.textContent = '🌙';
   } else {
     document.body.classList.remove('dark-theme');
     localStorage.setItem('theme', 'light');
+    if (themeIcon) themeIcon.textContent = '☀️';
   }
   console.log('Theme applied. Body class list:', document.body.classList);
 }
@@ -70,9 +76,9 @@ try {
       authDomain: "ds-times-c9894.firebaseapp.com",
       projectId: "ds-times-c9894",
       storageBucket: "ds-times-c9894.appspot.com",
-      messagingSenderId: "1060212009626",
-      appId: "1:1060212009626:web:1eee1200c7962b92060d23",
-      measurementId: "G-FV1DTL5TRW"
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Замени на актуальный messagingSenderId
+      appId: "YOUR_APP_ID", // Замени на актуальный appId
+      measurementId: "YOUR_MEASUREMENT_ID" // Замени на актуальный measurementId (если используешь Analytics)
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -247,6 +253,7 @@ if (loginForm) {
         setTimeout(() => window.location.href = 'dstimes.html', 2000);
       })
       .catch((error) => {
+        console.error('Ошибка входа:', error);
         switch (error.code) {
           case 'auth/invalid-email':
             message.textContent = 'Ошибка: Неверный формат email.';
@@ -416,29 +423,45 @@ if (postForm) {
       imageUrl: null
     };
 
-    if (storage && imageFile) {
-      const storageRef = storage.ref(`posts/${Date.now()}_${imageFile.name}`);
-      storageRef.put(imageFile)
-        .then((snapshot) => {
-          return snapshot.ref.getDownloadURL();
+    if (imageFile) {
+      // Читаем файл как base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result.split(',')[1];
+        fetch('https://us-central1-ds-times-c9894.cloudfunctions.net/uploadImage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file: base64String,
+            fileName: imageFile.name,
+            contentType: imageFile.type
+          })
         })
-        .then((downloadURL) => {
-          postData.imageUrl = downloadURL;
-          return db.collection('posts').add(postData);
-        })
-        .then(() => {
-          showModal('Пост успешно добавлен!');
-          postForm.reset();
-          postFormContainer.style.display = 'none';
-          loadPosts();
-        })
-        .catch((error) => {
-          showModal(`Ошибка: ${error.message}`, false);
-        });
+          .then(response => response.json())
+          .then(data => {
+            if (data.url) {
+              postData.imageUrl = data.url;
+              return db.collection('posts').add(postData);
+            } else {
+              throw new Error(data.error || 'Не удалось загрузить изображение');
+            }
+          })
+          .then(() => {
+            showModal('Пост успешно добавлен!');
+            postForm.reset();
+            postFormContainer.style.display = 'none';
+            loadPosts();
+          })
+          .catch((error) => {
+            console.error('Ошибка при загрузке изображения:', error);
+            showModal(`Ошибка: ${error.message}`, false);
+          });
+      };
+      reader.onerror = () => {
+        showModal('Ошибка: Не удалось прочитать файл.', false);
+      };
+      reader.readAsDataURL(imageFile);
     } else {
-      if (imageFile) {
-        showModal('Ошибка: Firebase Storage недоступен, изображение не загружено.', false);
-      }
       db.collection('posts').add(postData)
         .then(() => {
           showModal('Пост успешно добавлен!');
@@ -513,6 +536,10 @@ function loadPosts() {
     .orderBy('createdAt', 'desc')
     .onSnapshot((snapshot) => {
       postsList.innerHTML = '';
+      if (snapshot.empty) {
+        postsList.innerHTML = '<p>Пока нет постов. Создайте первый пост!</p>';
+        return;
+      }
       snapshot.forEach((doc) => {
         const post = doc.data();
         const postId = doc.id;
@@ -559,6 +586,7 @@ function loadPosts() {
       });
     }, (error) => {
       console.error('Ошибка при загрузке постов:', error);
+      postsList.innerHTML = '<p>Ошибка загрузки постов. Попробуйте позже.</p>';
     });
 }
 
