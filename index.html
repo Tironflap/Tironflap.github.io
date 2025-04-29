@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Hub</title>
+    <title>Redirect Buttons</title>
     <style>
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             background-color: #f0f0f0;
+            text-align: center;
         }
         h1 {
             font-size: 36px;
-            margin-bottom: 20px;
+            margin-bottom: 20px; /* Space between text and buttons */
             color: #333;
+        }
         button {
             margin: 10px;
             padding: 15px 20px;
@@ -23,7 +26,7 @@
             cursor: pointer;
             border: none;
             border-radius: 5px;
-            background-color: #000000;
+            background-color: #007BFF;
             color: white;
             transition: background-color 0.3s;
         }
@@ -32,10 +35,12 @@
         }
     </style>
 </head>
- <h1>Добро пожаловать!</h1>
+<body>
+    <h1>Добро пожаловать!</h1>
     <!-- Buttons are clearly below the welcome text -->
     <div>
         <button onclick="window.location.href='https://tironflap.github.io/table'">Расписание</button>
         <button onclick="window.location.href='https://tironflap.github.io/dstimes'">Новости Цш</button>
     </div>
-</html>   
+</body>
+</html>
