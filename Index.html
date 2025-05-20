@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            margin-top: 10px;
+            font-family: "Roboto", sans-serif;
+            border-radius: 5px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        th:first-child {
+            border-top-left-radius: 5px;
+        }
+        th:last-child {
+            border-top-right-radius: 5px;
+        }
+        tr:last-child td:first-child {
+            border-bottom-left-radius: 5px;
+        }
+        tr:last-child td:last-child {
+            border-bottom-right-radius: 5px;
+        }
+        .filters {
+            margin-bottom: 20px;
+            font-family: "Verdana", sans-serif;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .filters label {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .filters select {
+            padding: 8px;
+            font-family: inherit;
+            border-radius: 5px;
+            font-size: 16px;
+            flex: 1;
+            min-width: 120px;
+        }
+        .day-section {
+            margin-top: 20px;
+        }
+        .day-section h2 {
+            font-family: "Verdana", sans-serif;
+            font-size: 20px;
+            margin: 10px 0;
+        }
+        .footer {
+            margin-top: 10px;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .footer a {
+            color: #000000;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .settings-btn {
+            padding: 8px 15px;
+            font-family: "Verdana", sans-serif;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            border: 1px solid;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            font-family: "Verdana", sans-serif;
+        }
+        .modal-content button {
+            margin: 10px;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            border: none;
+        }
+        .close-btn {
+            background-color: #ccc;
+            border-radius: 5px;
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filters label {
+                margin-right: 0;
+                margin-bottom: 5px;
+                font-size: 14px;
+            }
+
+            .filters select {
+                font-size: 14px;
+                padding: 6px;
+            }
+
+            .settings-btn {
+                font-size: 14px;
+                padding: 6px 12px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            #tableContainer {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 400px;
+            }
+
+            th, td {
+                padding: 6px;
+                font-size: 12px;
+                max-width: 100px;
+            }
+
+            .day-section h2 {
+                font-size: 16px;
+                margin: 10px 0;
+            }
+
+            .modal-content {
+                width: 90%;
+                padding: 15px;
+            }
+
+            .modal-content h3 {
+                font-size: 18px;
+            }
+
+            .modal-content button {
+                font-size: 14px;
+                padding: 6px 12px;
+                width: 100%;
+                box-sizing: border-box;
+                margin: 5px 0;
+            }
+
+            .footer {
+                font-size: 12px;
+                text-align: center;
+                padding-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="filters">
+        <label>День: <select id="dayFilter"><option value="">Все</option></select></label>
+        <label>Класс: <select id="classFilter"><option value="">Все</option></select></label>
+        <label>Кабинет: <select id="roomFilter"><option value="">Все</option></select></label>
+        <button class="settings-btn" onclick="openSettings()">Настройки</button>
+    </div>
+    <div id="tableContainer"></div>
+    <div class="footer">
+        <a href="https://t.me/Digital_sch_Helper_bot" target="_blank">@Digital_sch_Helper_bot</a>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h3>Настройки</h3>
+            <button onclick="changeBackground('black')">Чёрный фон</button>
+            <button onclick="changeBackground('white')">Белый фон</button>
+            <button onclick="window.open('https://t.me/DH_Helper', '_blank')">Поддержка</button>
+            <button class="close-btn" onclick="closeSettings()">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        let originalData = [];
+
+        const dayOrder = [
+            "Понедельник",
+            "Вторник",
+            "Среда",
+            "Четверг",
+            "Пятница",
+            "Суббота"
+        ];
+
+        const classOrder = [
+            "7Э", "7Ю", "7Я",
+            "8Э", "8Ю", "8Я",
+            "9Э", "9Ю",
+            "10Э", "10Ю",
+            "11Я"
+        ];
+
+        function normalizeData(rawData) {
+            if (!rawData || !rawData.data || !Array.isArray(rawData.data)) {
+                console.error('Данные не содержат массив в поле data или пусты:', rawData);
+                return [];
+            }
+
+            const data = rawData.data;
+            if (data.length === 0) {
+                console.warn('Массив data пуст');
+                return [];
+            }
+
+            const allKeys = new Set();
+            data.forEach(item => {
+                if (item && typeof item === 'object' && !Array.isArray(item) && item !== null) {
+                    Object.keys(item).forEach(key => allKeys.add(key));
+                }
+            });
+
+            console.log('Все ключи в данных:', [...allKeys]);
+
+            return data.map(item => {
+                if (!item || typeof item !== 'object' || Array.isArray(item) || item === null) {
+                    console.warn('Некорректный элемент данных:', item);
+                    return {};
+                }
+                const normalizedItem = {};
+                allKeys.forEach(key => {
+                    if (key.toLowerCase() === 'day') {
+                        normalizedItem['день'] = item[key] !== undefined ? String(item[key]).trim() : '';
+                    } else if (key.toLowerCase() === 'class') {
+                        normalizedItem['класс'] = item[key] !== undefined ? String(item[key]).trim() : '';
+                    } else if (key.toLowerCase() === 'room') {
+                        normalizedItem['кабинет'] = item[key] !== undefined ? String(item[key]).trim() : '';
+                    } else {
+                        normalizedItem[key] = item[key] !== undefined ? String(item[key]).trim() : '';
+                    }
+                });
+                return normalizedItem;
+            });
+        }
+
+        function applyThemeToTable(color) {
+            if (color === 'black') {
+                document.querySelectorAll('th').forEach(th => {
+                    th.style.color = 'white';
+                    th.style.backgroundColor = '#222';
+                    th.style.borderColor = 'white';
+                });
+                document.querySelectorAll('td').forEach(td => {
+                    td.style.color = 'white';
+                    td.style.backgroundColor = '#111';
+                    td.style.borderColor = 'white';
+                });
+                document.querySelectorAll('.day-section h2').forEach(h2 => {
+                    h2.style.color = 'white';
+                });
+            } else {
+                document.querySelectorAll('th').forEach(th => {
+                    th.style.color = 'black';
+                    th.style.backgroundColor = '#f2f2f2';
+                    th.style.borderColor = 'black';
+                });
+                document.querySelectorAll('td').forEach(td => {
+                    td.style.color = 'black';
+                    td.style.backgroundColor = 'white';
+                    td.style.borderColor = 'black';
+                });
+                document.querySelectorAll('.day-section h2').forEach(h2 => {
+                    h2.style.color = 'black';
+                });
+            }
+        }
+
+        function createTable(data) {
+            const container = document.getElementById('tableContainer');
+            container.innerHTML = '';
+
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                container.textContent = 'Нет данных для отображения после фильтрации';
+                console.log('Отфильтрованные данные:', data);
+                return;
+            }
+
+            if (!data[0] || typeof data[0] !== 'object' || data[0] === null) {
+                container.textContent = 'Данные некорректны';
+                console.log('Первые данные:', data[0]);
+                return;
+            }
+
+            const isMobile = window.innerWidth <= 768;
+
+            if (isMobile) {
+                const days = [...new Set(data.map(item => item['день']))].sort((a, b) => {
+                    const indexA = dayOrder.indexOf(a);
+                    const indexB = dayOrder.indexOf(b);
+                    return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+                });
+
+                days.forEach(day => {
+                    const dayData = data.filter(item => item['день'] === day);
+                    if (dayData.length === 0) return;
+
+                    const classes = [...new Set(dayData.map(item => item['класс']))].sort((a, b) => {
+                        const indexA = classOrder.indexOf(a);
+                        const indexB = classOrder.indexOf(b);
+                        return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+                    });
+
+                    classes.forEach(cls => {
+                        const classData = dayData.filter(item => item['класс'] === cls);
+                        if (classData.length === 0) return;
+
+                        const section = document.createElement('div');
+                        section.className = 'day-section';
+
+                        const dayHeader = document.createElement('h2');
+                        dayHeader.textContent = `${day}, ${cls}`;
+                        section.appendChild(dayHeader);
+
+                        let table = document.createElement('table');
+                        let thead = document.createElement('thead');
+                        let headerRow = document.createElement('tr');
+                        let headers = Object.keys(classData[0]).filter(header => header !== 'день' && header !== 'класс');
+
+                        headers.forEach(header => {
+                            let th = document.createElement('th');
+                            th.textContent = header === 'номер урока' ? 'номер' : header;
+                            headerRow.appendChild(th);
+                        });
+                        thead.appendChild(headerRow);
+                        table.appendChild(thead);
+
+                        let tbody = document.createElement('tbody');
+                        classData.forEach(item => {
+                            let row = document.createElement('tr');
+                            headers.forEach(header => {
+                                let td = document.createElement('td');
+                                td.textContent = item[header] !== undefined ? item[header] : '';
+                                row.appendChild(td);
+                            });
+                            tbody.appendChild(row);
+                        });
+                        table.appendChild(tbody);
+
+                        section.appendChild(table);
+                        container.appendChild(section);
+                    });
+                });
+            } else {
+                let table = document.createElement('table');
+                let thead = document.createElement('thead');
+                let headerRow = document.createElement('tr');
+                let headers = Object.keys(data[0]);
+
+                headers.forEach(header => {
+                    let th = document.createElement('th');
+                    th.textContent = header === 'номер урока' ? 'номер' : header;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                let tbody = document.createElement('tbody');
+                data.forEach(item => {
+                    let row = document.createElement('tr');
+                    headers.forEach(header => {
+                        let td = document.createElement('td');
+                        td.textContent = item[header] !== undefined ? item[header] : '';
+                        row.appendChild(td);
+                    });
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+
+                container.appendChild(table);
+            }
+
+            const currentTheme = localStorage.getItem('backgroundColor') || 'white';
+            applyThemeToTable(currentTheme);
+        }
+
+        function populateFilters(data) {
+            const dayFilter = document.getElementById('dayFilter');
+            const classFilter = document.getElementById('classFilter');
+            const roomFilter = document.getElementById('roomFilter');
+
+            const uniqueDays = [...new Set(data.map(item => item['день']))];
+            const days = uniqueDays.sort((a, b) => {
+                const indexA = dayOrder.indexOf(a);
+                const indexB = dayOrder.indexOf(b);
+                return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+            });
+
+            const uniqueClasses = [...new Set(data.map(item => item['класс']))];
+            const classes = uniqueClasses.sort((a, b) => {
+                const indexA = classOrder.indexOf(a);
+                const indexB = classOrder.indexOf(b);
+                return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+            });
+
+            const uniqueRooms = [...new Set(data.map(item => item['кабинет']))];
+            const rooms = uniqueRooms.filter(room => room !== '').sort();
+
+            console.log('Уникальные дни:', uniqueDays);
+            console.log('Уникальные классы:', uniqueClasses);
+            console.log('Уникальные кабинеты:', uniqueRooms);
+
+            days.forEach(day => {
+                let option = document.createElement('option');
+                option.value = day;
+                option.textContent = day;
+                dayFilter.appendChild(option);
+            });
+
+            classes.forEach(cls => {
+                let option = document.createElement('option');
+                option.value = cls;
+                option.textContent = cls;
+                classFilter.appendChild(option);
+            });
+
+            rooms.forEach(room => {
+                let option = document.createElement('option');
+                option.value = room;
+                option.textContent = room;
+                roomFilter.appendChild(option);
+            });
+        }
+
+        function filterData() {
+            const dayFilter = document.getElementById('dayFilter').value;
+            const classFilter = document.getElementById('classFilter').value;
+            const roomFilter = document.getElementById('roomFilter').value;
+
+            let filteredData = [...originalData];
+
+            console.log('Применяемые фильтры:', { dayFilter, classFilter, roomFilter });
+
+            if (dayFilter) {
+                filteredData = filteredData.filter(item => {
+                    const day = item['день'] || '';
+                    const match = day.toLowerCase() === dayFilter.toLowerCase();
+                    console.log(`Фильтр по дню: ${day} === ${dayFilter} -> ${match}`);
+                    return match;
+                });
+            }
+            if (classFilter) {
+                filteredData = filteredData.filter(item => {
+                    const cls = item['класс'] || '';
+                    const match = cls.toLowerCase() === classFilter.toLowerCase();
+                    console.log(`Фильтр по классу: ${cls} === ${classFilter} -> ${match}`);
+                    return match;
+                });
+            }
+            if (roomFilter) {
+                filteredData = filteredData.filter(item => {
+                    const room = item['кабинет'] || '';
+                    const match = room.toLowerCase() === roomFilter.toLowerCase();
+                    console.log(`Фильтр по кабинету: ${room} === ${roomFilter} -> ${match}`);
+                    return match;
+                });
+            }
+
+            console.log('Отфильтрованные данные:', filteredData);
+            createTable(filteredData);
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function changeBackground(color) {
+            localStorage.setItem('backgroundColor', color);
+
+            document.body.style.backgroundColor = color;
+            if (color === 'black') {
+                document.body.style.color = 'white';
+                document.querySelector('.modal-content').style.backgroundColor = '#111';
+                document.querySelector('.modal-content').style.color = 'white';
+                document.querySelectorAll('.filters label').forEach(label => label.style.color = 'white');
+                document.querySelectorAll('.filters select').forEach(select => {
+                    select.style.color = 'white';
+                    select.style.backgroundColor = '#111';
+                    select.style.borderColor = 'white';
+                });
+                document.querySelector('.settings-btn').style.color = 'white';
+                document.querySelector('.settings-btn').style.backgroundColor = '#111';
+                document.querySelector('.settings-btn').style.borderColor = 'white';
+                document.querySelector('.footer a').style.color = 'white';
+            } else {
+                document.body.style.color = 'black';
+                document.querySelector('.modal-content').style.backgroundColor = 'white';
+                document.querySelector('.modal-content').style.color = 'black';                document.querySelectorAll('.filters label').forEach(label => label.style.color = 'black');
+                document.querySelectorAll('.filters select').forEach(select => {
+                    select.style.color = 'black';
+                    select.style.backgroundColor = 'white';
+                    select.style.borderColor = 'black';
+                });
+                document.querySelector('.settings-btn').style.color = 'black';
+                document.querySelector('.settings-btn').style.backgroundColor = 'white';
+                document.querySelector('.settings-btn').style.borderColor = 'black';
+                document.querySelector('.footer a').style.color = '#007bff';
+            }
+
+            applyThemeToTable(color);
+        }
+
+        function loadSavedTheme() {
+            const savedColor = localStorage.getItem('backgroundColor') || 'white';
+            changeBackground(savedColor);
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('settingsModal');
+            if (event.target === modal) {
+                closeSettings();
+            }
+        };
+
+        window.addEventListener('resize', () => {
+            filterData();
+        });
+
+        fetch('normal.json', { cache: 'no-store' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки файла: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(rawData => {
+                console.log('Сырые данные из normal.json:', rawData);
+                originalData = normalizeData(rawData);
+                console.log('Нормализованные данные:', originalData);
+                if (originalData.length > 0) {
+                    populateFilters(originalData);
+                    createTable(originalData);
+
+                    loadSavedTheme();
+
+                    document.getElementById('dayFilter').addEventListener('change', filterData);
+                    document.getElementById('classFilter').addEventListener('change', filterData);
+                    document.getElementById('roomFilter').addEventListener('change', filterData);
+                } else {
+                    document.getElementById('tableContainer').textContent = 'Нет данных для отображения';
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                document.getElementById('tableContainer').textContent = 
+                    'Не удалось загрузить данные: ' + error.message;
+            });
+    </script>
+</body>
+</html>
