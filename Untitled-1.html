@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>СИСТЕМА ВЗЛОМАНА</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #000;
+      color: #0f0;
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
+      image-rendering: pixelated;
+    }
+
+    #matrix {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      opacity: 0.15;
+      z-index: 1;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding-top: 15vh;
+    }
+
+    h1 {
+      font-size: 4.5rem;
+      margin: 0;
+      color: #f00;
+      text-shadow: 0 0 20px #f00;
+      animation: glitch 2s infinite;
+    }
+
+    .countdown {
+      font-size: 6rem;
+      font-weight: bold;
+      color: #ff4444;
+      margin: 30px 0;
+      text-shadow: 0 0 30px #ff0000;
+    }
+
+    .log {
+      max-width: 800px;
+      margin: 40px auto;
+      text-align: left;
+      font-size: 1.4rem;
+      line-height: 1.6;
+      background: rgba(0,0,0,0.6);
+      padding: 25px;
+      border: 2px solid #0f0;
+      border-radius: 8px;
+    }
+
+    .access {
+      display: none;
+      font-size: 3.5rem;
+      color: #00ff00;
+      margin-top: 60px;
+      text-shadow: 0 0 40px #00ff00;
+      animation: blink 1.2s infinite;
+    }
+
+    @keyframes glitch {
+      0%,100% { transform: translate(0); }
+      20% { transform: translate(-4px, 4px); }
+      40% { transform: translate(4px, -4px); }
+      60% { transform: translate(-4px, 0); }
+      80% { transform: translate(4px, 4px); }
+    }
+
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50%     { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div class="container">
+  <h1>ВЗЛОМ ПК</h1>
+  
+  <div class="countdown" id="timer">00:45</div>
+  
+  <div class="log" id="log">
+    [2026-01-13 17:42:19] Установлено соединение...<br>
+    [2026-01-13 17:42:21] Обход Windows Defender... УСПЕХ<br>
+    [2026-01-13 17:42:24] Получен доступ к системе уровня KERNEL<br>
+    [2026-01-13 17:42:28] Сканирование браузеров...<br>
+    [2026-01-13 17:42:32] Обнаружен Telegram (nick: <b>'@sherl0ck_m0ps';   </b>)<br>
+    [2026-01-13 17:42:35] Обнаружен Steam (login: <b>'ЖiRl0ck м0пс'; </b>)<br>
+    [2026-01-13 17:42:41] Извлечение сессий... 68%<br>
+    ПОЛНЫЙ ДОСТУП ЧЕРЕЗ...
+  </div>
+
+  <div class="access" id="accessGranted">
+    ДОСТУП ПОЛУЧЕН!<br>
+  </div>
+</div>
+
+<script>
+// Матрица на фоне
+const canvas = document.getElementById('matrix');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZабвгдеёжзийклмнопрстуфхцчшщъыьэюя';
+const fontSize = 16;
+const columns = canvas.width / fontSize;
+
+const drops = Array(Math.floor(columns)).fill(1);
+
+function draw() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.fillStyle = '#0f0';
+  ctx.font = fontSize + 'px monospace';
+
+  for(let i = 0; i < drops.length; i++) {
+    const text = chars.charAt(Math.floor(Math.random() * chars.length));
+    const x = i * fontSize;
+    const y = drops[i] * fontSize;
+    
+    ctx.fillText(text, x, y);
+    
+    if(y > canvas.height && Math.random() > 0.975)
+      drops[i] = 0;
+    drops[i]++;
+  }
+}
+
+setInterval(draw, 45);
+
+// Обратный отсчёт
+let timeLeft = 45; // секунды
+const timerEl = document.getElementById('timer');
+const logEl = document.getElementById('log');
+const accessEl = document.getElementById('accessGranted');
+
+const countdown = setInterval(() => {
+  timeLeft--;
+  const min = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+  const sec = String(timeLeft % 60).padStart(2, '0');
+  timerEl.textContent = `${min}:${sec}`;
+
+  if (timeLeft <= 0) {
+    clearInterval(countdown);
+    timerEl.style.display = 'none';
+    logEl.style.display = 'none';
+    accessEl.style.display = 'block';
+    
+    // Можно добавить звук (раскомментируй, если хочешь)
+    // new Audio('https://assets.mixkit.co/sfx/preview/mixkit-error-notification-196.mp3').play();
+  }
+}, 1000);
+
+// Адаптация под размер окна
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
