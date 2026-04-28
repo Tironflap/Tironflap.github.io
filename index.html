@@ -1,10 +1,180 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>title</title>
+    <meta name="viewport" content="width=400, initial-scale=1.0">
+    <title>3DS Reddit</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #000;
+            color: #0f0;
+            margin: 0;
+            padding: 10px;
+            line-height: 1.4;
+        }
+        h1 {
+            color: #0f0;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        input, select, button {
+            background: #111;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 8px;
+            margin: 6px 0;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+        button {
+            background: #003300;
+            font-weight: bold;
+        }
+        button:active {
+            background: #006600;
+        }
+        .post {
+            border-bottom: 1px solid #003300;
+            padding: 12px 0;
+            word-wrap: break-word;
+        }
+        .title {
+            color: #0ff;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .subreddit {
+            color: #6f6;
+            font-size: 13px;
+        }
+        .meta {
+            color: #888;
+            font-size: 12px;
+        }
+        a {
+            color: #0ff;
+            text-decoration: underline;
+        }
+        .loading, .status {
+            color: #ff0;
+            text-align: center;
+            padding: 10px;
+        }
+        .error {
+            color: #f66;
+        }
+    </style>
 </head>
 <body>
-    <h1>Nothing to see here</h1>
+    <h1>🕹️ 3DS Reddit Reader</h1>
+    
+    <input type="text" id="subreddit" placeholder="Subreddit (e.g. pokemon, gaming, all)" value="all">
+    
+    <select id="sort">
+        <option value="hot">Hot</option>
+        <option value="new">New</option>
+        <option value="top">Top</option>
+        <option value="rising">Rising</option>
+    </select>
+    
+    <button onclick="loadPosts()">Load Posts</button>
+    
+    <div id="status" class="status"></div>
+    <div id="posts"></div>
+
+    <script>
+        function ajax(url, callback) {
+            // Using corsproxy.io to bypass CORS restrictions
+            var proxiedUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', proxiedUrl, true);
+            
+            xhr.onload = function() {
+                var statusEl = document.getElementById('status');
+                if (xhr.status === 200) {
+                    try {
+                        var json = JSON.parse(xhr.responseText);
+                        callback(json);
+                    } catch(e) {
+                        statusEl.innerHTML = '<span class="error">Failed to parse Reddit data</span>';
+                    }
+                } else {
+                    statusEl.innerHTML = '<span class="error">Proxy Error: ' + xhr.status + '</span>';
+                }
+            };
+            xhr.onerror = function() {
+                document.getElementById('status').innerHTML = 
+                    '<span class="error">Network error (Proxy blocked or down)</span>';
+            };
+            xhr.send();
+        }
+
+        function loadPosts() {
+            var sub = document.getElementById('subreddit').value.trim();
+            if (!sub) sub = 'all';
+            var sort = document.getElementById('sort').value;
+            
+            // Construct the standard Reddit JSON URL
+            var url = "https://www.reddit.com/r/" + sub + "/" + sort + ".json?limit=12&raw_json=1";
+            
+            var status = document.getElementById('status');
+            var postsDiv = document.getElementById('posts');
+            
+            status.textContent = "Loading r/" + sub + "...";
+            postsDiv.innerHTML = '';
+
+            ajax(url, function(data) {
+                status.textContent = "r/" + sub + " (loaded)";
+                postsDiv.innerHTML = '';
+
+                if (!data || !data.data || !data.data.children) {
+                    postsDiv.innerHTML = '<p class="error">No posts found or subreddit is private.</p>';
+                    return;
+                }
+
+                var children = data.data.children;
+                
+                for (var i = 0; i < children.length; i++) {
+                    var p = children[i].data;
+                    var div = document.createElement('div');
+                    div.className = 'post';
+
+                    var titleLink = '<a href="https://old.reddit.com' + p.permalink + '" target="_blank">' + p.title + '</a>';
+                    
+                    div.innerHTML = 
+                        '<div class="title">' + titleLink + '</div>' +
+                        '<div class="meta">' +
+                            '<span class="subreddit">r/' + p.subreddit + '</span> • ' +
+                            p.score + ' pts • ' + p.num_comments + ' comments' +
+                        '</div>';
+
+                    // Add text preview if it exists
+                    if (p.selftext && p.selftext.length > 0) {
+                        var preview = document.createElement('div');
+                        preview.style.fontSize = '13px';
+                        preview.style.color = '#aaa';
+                        preview.style.marginTop = '8px';
+                        preview.textContent = p.selftext.substring(0, 150) + (p.selftext.length > 150 ? '...' : '');
+                        div.appendChild(preview);
+                    }
+
+                    postsDiv.appendChild(div);
+                }
+
+                if (children.length === 0) {
+                    postsDiv.innerHTML = '<p>No posts found.</p>';
+                }
+            });
+        }
+
+        // Auto-load on start
+        window.onload = function() {
+            loadPosts();
+        };
+    </script>
 </body>
-</html
+</html>
