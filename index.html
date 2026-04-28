@@ -3,102 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=400, initial-scale=1.0">
-    <title>3DS Reddit + Pics</title>
+    <title>3DS Reddit Reader</title>
     <style>
         body { font-family: sans-serif; background: #000; color: #0f0; margin: 0; padding: 10px; }
-        h1 { text-align: center; font-size: 16px; margin: 5px 0; }
         input, button { background: #111; color: #0f0; border: 1px solid #0f0; padding: 10px; margin: 5px 0; width: 100%; font-size: 16px; }
         button { background: #004400; font-weight: bold; }
-        .post { border-bottom: 1px solid #003300; padding: 12px 0; overflow: hidden; }
-        .title { color: #0ff; font-weight: bold; font-size: 14px; text-decoration: none; display: block; margin-bottom: 5px; }
-        .thumb { float: left; margin-right: 10px; width: 70px; height: 70px; border: 1px solid #333; background: #111; }
+        .post { border-bottom: 1px solid #003300; padding: 10px 0; overflow: hidden; clear: both; }
+        .title { color: #0ff; font-weight: bold; font-size: 14px; text-decoration: none; display: block; }
+        .thumb { float: left; margin: 0 10px 5px 0; width: 80px; height: 80px; object-fit: cover; border: 1px solid #333; }
         .meta { color: #888; font-size: 11px; }
-        .status { color: #ff0; text-align: center; padding: 5px; font-size: 13px; }
-        .nav-box { display: flex; gap: 5px; }
-        .nav-btn { width: 50%; }
+        .status { color: #ff0; text-align: center; font-size: 13px; margin: 10px 0; }
     </style>
 </head>
 <body>
-    <h1>🕹️ 3DS Reddit Reader</h1>
+    <h1>🕹️ 3DS Reddit</h1>
     <input type="text" id="subreddit" value="all">
-    <button onclick="loadPosts(null)">Refresh / Search</button>
+    <button onclick="loadPosts(false)">Refresh Subreddit</button>
     
     <div id="status" class="status">Ready</div>
     <div id="posts"></div>
-
-    <div class="nav-box">
-        <button id="nextBtn" style="display:none;" onclick="loadNext()">Next Page ➡️</button>
-    </div>
+    <button id="nextBtn" style="display:none;" onclick="loadPosts(true)">Next Page ➡️</button>
 
     <script type="text/javascript">
         var WORKER_URL = "https://damp-shape-c392.k-oleg-dd.workers.dev/?url=";
-        var currentAfter = null;
+        var after = "";
 
-        function loadPosts(afterTag) {
+        function loadPosts(isNext) {
             var sub = document.getElementById('subreddit').value || 'all';
             var status = document.getElementById('status');
             var postsDiv = document.getElementById('posts');
-            var nextBtn = document.getElementById('nextBtn');
-
+            
             status.innerHTML = "Loading...";
-            if (!afterTag) postsDiv.innerHTML = ""; // Clear only on new search
+            if (!isNext) { postsDiv.innerHTML = ""; after = ""; }
 
-            var redditUrl = "https://www.reddit.com/r/" + sub + ".json?limit=5";
-            if (afterTag) redditUrl += "&after=" + afterTag;
+            var redditUrl = "https://www.reddit.com/r/" + sub + ".json?limit=5&after=" + after;
+            var finalUrl = WORKER_URL + encodeURIComponent(redditUrl);
 
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", WORKER_URL + encodeURIComponent(redditUrl), true);
-
+            xhr.open("GET", finalUrl, true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    try {
-                        var json = JSON.parse(xhr.responseText);
-                        currentAfter = json.data.after;
-                        render(json);
-                        
-                        status.innerHTML = "r/" + sub;
-                        nextBtn.style.display = currentAfter ? "block" : "none";
-                    } catch (e) {
-                        status.innerHTML = "Error parsing data.";
-                    }
+                    var json = JSON.parse(xhr.responseText);
+                    after = json.data.after;
+                    render(json);
+                    status.innerHTML = "r/" + sub;
+                    document.getElementById('nextBtn').style.display = "block";
                 }
             };
             xhr.send();
         }
 
-        function loadNext() {
-            if (currentAfter) loadPosts(currentAfter);
-        }
-
         function render(json) {
             var postsDiv = document.getElementById('posts');
-            var items = json.data.children;
+            var children = json.data.children;
 
-            for (var i = 0; i < items.length; i++) {
-                var p = items[i].data;
+            for (var i = 0; i < children.length; i++) {
+                var p = children[i].data;
                 var div = document.createElement('div');
                 div.className = 'post';
 
-                // Image Logic: Check for thumbnail
-                var thumbImg = "";
+                // We pass the image through the worker to keep the 3DS from choking on SSL/Size
+                var imgTag = "";
                 if (p.thumbnail && p.thumbnail.indexOf("http") === 0) {
-                    thumbImg = '<img src="' + p.thumbnail + '" class="thumb">';
-                } else if (p.url && (p.url.indexOf(".jpg") > -1 || p.url.indexOf(".png") > -1)) {
-                    // Fallback for direct image links
-                    thumbImg = '<img src="' + p.url + '" class="thumb">';
+                    var proxiedImg = WORKER_URL + encodeURIComponent(p.thumbnail) + "&type=img";
+                    imgTag = '<img src="' + proxiedImg + '" class="thumb">';
                 }
 
-                div.innerHTML = thumbImg +
+                div.innerHTML = imgTag + 
                     '<a class="title" href="https://old.reddit.com' + p.permalink + '">' + p.title + '</a>' +
                     '<div class="meta">r/' + p.subreddit + ' | ' + p.score + ' pts</div>';
                 
                 postsDiv.appendChild(div);
             }
-            // Scroll a bit so user sees new content
-            window.scrollBy(0, 100);
         }
 
-        window.onload = function() { loadPosts(null); };
+        window.onload = function() { loadPosts(false); };
     </script>
 </body>
 </html>
