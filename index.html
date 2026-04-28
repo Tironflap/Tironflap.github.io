@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=400, initial-scale=1.0">
-    <title>3DS Reddit</title>
+    <title>3DS Reddit Reader</title>
     <style>
         body {
             font-family: sans-serif;
@@ -11,170 +11,129 @@
             color: #0f0;
             margin: 0;
             padding: 10px;
-            line-height: 1.4;
+            line-height: 1.2;
         }
         h1 {
             color: #0f0;
             text-align: center;
-            margin: 10px 0;
-            font-size: 18px;
+            font-size: 16px;
+            margin: 5px 0;
         }
         input, select, button {
             background: #111;
             color: #0f0;
             border: 1px solid #0f0;
-            padding: 8px;
-            margin: 6px 0;
+            padding: 5px;
+            margin: 4px 0;
             width: 100%;
-            box-sizing: border-box;
-            font-size: 15px;
+            font-size: 14px;
         }
         button {
-            background: #003300;
-            font-weight: bold;
-        }
-        button:active {
-            background: #006600;
+            background: #004400;
         }
         .post {
-            border-bottom: 1px solid #003300;
-            padding: 12px 0;
-            word-wrap: break-word;
+            border-bottom: 1px solid #004400;
+            padding: 8px 0;
         }
         .title {
             color: #0ff;
             font-weight: bold;
-            font-size: 15px;
-        }
-        .subreddit {
-            color: #6f6;
-            font-size: 13px;
+            font-size: 14px;
+            text-decoration: none;
         }
         .meta {
             color: #888;
-            font-size: 12px;
+            font-size: 11px;
         }
-        a {
-            color: #0ff;
-            text-decoration: underline;
-        }
-        .loading, .status {
+        .status {
             color: #ff0;
             text-align: center;
-            padding: 10px;
+            font-size: 12px;
         }
-        .error {
-            color: #f66;
-        }
+        .error { color: #f44; }
     </style>
 </head>
 <body>
-    <h1>🕹️ 3DS Reddit Reader</h1>
+    <h1>🕹️ 3DS Reddit</h1>
     
-    <input type="text" id="subreddit" placeholder="Subreddit (e.g. pokemon, gaming, all)" value="all">
+    <input type="text" id="subreddit" value="all">
     
     <select id="sort">
         <option value="hot">Hot</option>
         <option value="new">New</option>
         <option value="top">Top</option>
-        <option value="rising">Rising</option>
     </select>
     
     <button onclick="loadPosts()">Load Posts</button>
     
-    <div id="status" class="status"></div>
+    <div id="status" class="status">Waiting...</div>
     <div id="posts"></div>
 
-    <script>
-        function ajax(url, callback) {
-            // Using corsproxy.io to bypass CORS restrictions
-            var proxiedUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
+    <script type="text/javascript">
+        function loadPosts() {
+            var sub = document.getElementById('subreddit').value || 'all';
+            var sort = document.getElementById('sort').value;
+            var status = document.getElementById('status');
+            var postsDiv = document.getElementById('posts');
+
+            status.innerHTML = "Connecting to Proxy...";
+            postsDiv.innerHTML = "";
+
+            // The Reddit API URL (limited to 5 for 3DS RAM safety)
+            var redditUrl = "https://www.reddit.com/r/" + sub + "/" + sort + ".json?limit=5";
             
+            // AllOrigins Proxy URL
+            var proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(redditUrl);
+
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', proxiedUrl, true);
-            
-            xhr.onload = function() {
-                var statusEl = document.getElementById('status');
-                if (xhr.status === 200) {
-                    try {
-                        var json = JSON.parse(xhr.responseText);
-                        callback(json);
-                    } catch(e) {
-                        statusEl.innerHTML = '<span class="error">Failed to parse Reddit data</span>';
+            xhr.open("GET", proxyUrl, true);
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            // AllOrigins wraps the result in a 'contents' string
+                            var data = JSON.parse(response.contents);
+                            render(data);
+                            status.innerHTML = "Loaded: r/" + sub;
+                        } catch (e) {
+                            status.innerHTML = "<span class='error'>Parse Error (Subreddit private?)</span>";
+                        }
+                    } else {
+                        status.innerHTML = "<span class='error'>SSL/Proxy Error: " + xhr.status + "</span>";
                     }
-                } else {
-                    statusEl.innerHTML = '<span class="error">Proxy Error: ' + xhr.status + '</span>';
                 }
             };
+            
             xhr.onerror = function() {
-                document.getElementById('status').innerHTML = 
-                    '<span class="error">Network error (Proxy blocked or down)</span>';
+                status.innerHTML = "<span class='error'>Connection Failed. SSL mismatch?</span>";
             };
+
             xhr.send();
         }
 
-        function loadPosts() {
-            var sub = document.getElementById('subreddit').value.trim();
-            if (!sub) sub = 'all';
-            var sort = document.getElementById('sort').value;
-            
-            // Construct the standard Reddit JSON URL
-            var url = "https://www.reddit.com/r/" + sub + "/" + sort + ".json?limit=12&raw_json=1";
-            
-            var status = document.getElementById('status');
+        function render(json) {
             var postsDiv = document.getElementById('posts');
+            var items = json.data.children;
             
-            status.textContent = "Loading r/" + sub + "...";
-            postsDiv.innerHTML = '';
-
-            ajax(url, function(data) {
-                status.textContent = "r/" + sub + " (loaded)";
-                postsDiv.innerHTML = '';
-
-                if (!data || !data.data || !data.data.children) {
-                    postsDiv.innerHTML = '<p class="error">No posts found or subreddit is private.</p>';
-                    return;
-                }
-
-                var children = data.data.children;
+            for (var i = 0; i < items.length; i++) {
+                var p = items[i].data;
+                var itemDiv = document.createElement('div');
+                itemDiv.className = 'post';
                 
-                for (var i = 0; i < children.length; i++) {
-                    var p = children[i].data;
-                    var div = document.createElement('div');
-                    div.className = 'post';
-
-                    var titleLink = '<a href="https://old.reddit.com' + p.permalink + '" target="_blank">' + p.title + '</a>';
-                    
-                    div.innerHTML = 
-                        '<div class="title">' + titleLink + '</div>' +
-                        '<div class="meta">' +
-                            '<span class="subreddit">r/' + p.subreddit + '</span> • ' +
-                            p.score + ' pts • ' + p.num_comments + ' comments' +
-                        '</div>';
-
-                    // Add text preview if it exists
-                    if (p.selftext && p.selftext.length > 0) {
-                        var preview = document.createElement('div');
-                        preview.style.fontSize = '13px';
-                        preview.style.color = '#aaa';
-                        preview.style.marginTop = '8px';
-                        preview.textContent = p.selftext.substring(0, 150) + (p.selftext.length > 150 ? '...' : '');
-                        div.appendChild(preview);
-                    }
-
-                    postsDiv.appendChild(div);
-                }
-
-                if (children.length === 0) {
-                    postsDiv.innerHTML = '<p>No posts found.</p>';
-                }
-            });
+                // Using old.reddit.com for the links to save memory
+                var link = "https://old.reddit.com" + p.permalink;
+                
+                itemDiv.innerHTML = 
+                    '<div class="title"><a style="color:#0ff" href="' + link + '">' + p.title + '</a></div>' +
+                    '<div class="meta">r/' + p.subreddit + ' | ' + p.score + ' pts</div>';
+                
+                postsDiv.appendChild(itemDiv);
+            }
         }
 
-        // Auto-load on start
-        window.onload = function() {
-            loadPosts();
-        };
+        window.onload = loadPosts;
     </script>
 </body>
 </html>
