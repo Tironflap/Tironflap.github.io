@@ -11,103 +11,97 @@
             color: #0f0;
             margin: 0;
             padding: 10px;
-            line-height: 1.2;
         }
         h1 {
             color: #0f0;
             text-align: center;
-            font-size: 16px;
+            font-size: 18px;
             margin: 5px 0;
         }
-        input, select, button {
+        input, button {
             background: #111;
             color: #0f0;
             border: 1px solid #0f0;
-            padding: 5px;
-            margin: 4px 0;
+            padding: 10px;
+            margin: 5px 0;
             width: 100%;
-            font-size: 14px;
+            box-sizing: border-box;
+            font-size: 16px;
         }
         button {
             background: #004400;
+            font-weight: bold;
         }
         .post {
-            border-bottom: 1px solid #004400;
-            padding: 8px 0;
+            border-bottom: 1px solid #003300;
+            padding: 12px 0;
         }
         .title {
             color: #0ff;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 15px;
             text-decoration: none;
+            display: block;
         }
         .meta {
             color: #888;
-            font-size: 11px;
+            font-size: 12px;
+            margin-top: 4px;
         }
         .status {
             color: #ff0;
             text-align: center;
-            font-size: 12px;
+            padding: 10px;
+            font-size: 14px;
         }
-        .error { color: #f44; }
     </style>
 </head>
 <body>
     <h1>🕹️ 3DS Reddit</h1>
     
-    <input type="text" id="subreddit" value="all">
+    <input type="text" id="subreddit" value="all" placeholder="subreddit name">
+    <button onclick="loadPosts()">View Subreddit</button>
     
-    <select id="sort">
-        <option value="hot">Hot</option>
-        <option value="new">New</option>
-        <option value="top">Top</option>
-    </select>
-    
-    <button onclick="loadPosts()">Load Posts</button>
-    
-    <div id="status" class="status">Waiting...</div>
+    <div id="status" class="status">System Ready</div>
     <div id="posts"></div>
 
     <script type="text/javascript">
+        // Your specific Cloudflare Worker URL
+        var WORKER_URL = "https://damp-shape-c392.k-oleg-dd.workers.dev/?url=";
+
         function loadPosts() {
             var sub = document.getElementById('subreddit').value || 'all';
-            var sort = document.getElementById('sort').value;
             var status = document.getElementById('status');
             var postsDiv = document.getElementById('posts');
-
-            status.innerHTML = "Connecting to Proxy...";
+            
+            status.innerHTML = "Connecting to Worker...";
             postsDiv.innerHTML = "";
 
-            // The Reddit API URL (limited to 5 for 3DS RAM safety)
-            var redditUrl = "https://www.reddit.com/r/" + sub + "/" + sort + ".json?limit=5";
-            
-            // AllOrigins Proxy URL
-            var proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(redditUrl);
+            // We limit to 5 posts to prevent the 3DS from running out of RAM
+            var redditUrl = "https://www.reddit.com/r/" + sub + ".json?limit=5&raw_json=1";
+            var finalUrl = WORKER_URL + encodeURIComponent(redditUrl);
 
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", proxyUrl, true);
+            xhr.open("GET", finalUrl, true);
 
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
                         try {
-                            var response = JSON.parse(xhr.responseText);
-                            // AllOrigins wraps the result in a 'contents' string
-                            var data = JSON.parse(response.contents);
-                            render(data);
-                            status.innerHTML = "Loaded: r/" + sub;
+                            var json = JSON.parse(xhr.responseText);
+                            render(json);
+                            status.innerHTML = "Showing r/" + sub;
                         } catch (e) {
-                            status.innerHTML = "<span class='error'>Parse Error (Subreddit private?)</span>";
+                            status.innerHTML = "Error parsing data.";
                         }
                     } else {
-                        status.innerHTML = "<span class='error'>SSL/Proxy Error: " + xhr.status + "</span>";
+                        status.innerHTML = "Worker Error: " + xhr.status;
                     }
                 }
             };
-            
+
             xhr.onerror = function() {
-                status.innerHTML = "<span class='error'>Connection Failed. SSL mismatch?</span>";
+                status.innerHTML = "Connection Failed.";
             };
 
             xhr.send();
@@ -115,24 +109,30 @@
 
         function render(json) {
             var postsDiv = document.getElementById('posts');
-            var items = json.data.children;
+            var children = json.data.children;
             
-            for (var i = 0; i < items.length; i++) {
-                var p = items[i].data;
-                var itemDiv = document.createElement('div');
-                itemDiv.className = 'post';
-                
-                // Using old.reddit.com for the links to save memory
+            if (children.length === 0) {
+                postsDiv.innerHTML = "No posts found.";
+                return;
+            }
+
+            for (var i = 0; i < children.length; i++) {
+                var p = children[i].data;
+                var div = document.createElement('div');
+                div.className = 'post';
+
+                // Use old.reddit.com links because the 3DS handles them much better
                 var link = "https://old.reddit.com" + p.permalink;
                 
-                itemDiv.innerHTML = 
-                    '<div class="title"><a style="color:#0ff" href="' + link + '">' + p.title + '</a></div>' +
-                    '<div class="meta">r/' + p.subreddit + ' | ' + p.score + ' pts</div>';
+                div.innerHTML = 
+                    '<a class="title" href="' + link + '">' + p.title + '</a>' +
+                    '<div class="meta">r/' + p.subreddit + ' | ' + p.score + ' points</div>';
                 
-                postsDiv.appendChild(itemDiv);
+                postsDiv.appendChild(div);
             }
         }
 
+        // Initial load
         window.onload = loadPosts;
     </script>
 </body>
