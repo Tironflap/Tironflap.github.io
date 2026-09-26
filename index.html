@@ -14,11 +14,8 @@
             padding: 8px;
             font-size: 14px;
         }
-        h1 {
-            font-size: 18px;
-            margin: 0 0 8px 0;
-            color: #00ff00;
-        }
+        h1 { font-size: 18px; margin: 0 0 8px 0; color: #00ff00; }
+        h2 { font-size: 15px; margin: 8px 0; color: #00ffff; }
         input, button {
             background: #111111;
             color: #00ff00;
@@ -34,6 +31,12 @@
             font-weight: bold;
             cursor: pointer;
         }
+        .btn-row { overflow: hidden; clear: both; }
+        .btn-half {
+            width: 48%;
+            float: left;
+            margin-right: 2%;
+        }
         .post {
             border-bottom: 1px solid #003300;
             padding: 8px 0;
@@ -44,9 +47,10 @@
             color: #00ffff;
             font-weight: bold;
             font-size: 13px;
-            text-decoration: none;
+            text-decoration: underline;
             display: block;
             margin-bottom: 4px;
+            cursor: pointer;
         }
         .thumb {
             float: left;
@@ -54,154 +58,386 @@
             width: 64px;
             height: 64px;
             border: 1px solid #333333;
+            cursor: pointer;
         }
-        .meta {
-            color: #888888;
-            font-size: 11px;
-        }
+        .meta { color: #888888; font-size: 11px; }
         .status {
             color: #ffff00;
             text-align: center;
             font-size: 13px;
             margin: 8px 0;
         }
-        .err {
-            color: #ff4444;
+        .err { color: #ff4444; }
+        .selftext {
+            color: #cccccc;
+            font-size: 12px;
+            margin: 8px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
-        #nextBtn {
-            display: none;
+        .comment {
+            border-left: 2px solid #004400;
+            margin: 6px 0 6px 4px;
+            padding: 4px 0 4px 6px;
         }
+        .c-author { color: #00ffaa; font-size: 11px; font-weight: bold; }
+        .c-body {
+            color: #cccccc;
+            font-size: 12px;
+            margin-top: 2px;
+            word-wrap: break-word;
+        }
+        .c-meta { color: #666666; font-size: 10px; }
+        .post-img {
+            max-width: 100%;
+            width: 100%;
+            height: auto;
+            border: 1px solid #333333;
+            margin: 6px 0;
+            cursor: pointer;
+        }
+        #viewList, #viewPost, #viewImg { display: none; }
+        #imgFull {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #00ff00;
+        }
+        #imgWrap {
+            text-align: center;
+            margin: 8px 0;
+        }
+        a { color: #00ffff; }
     </style>
 </head>
 <body>
+
+<!-- LIST VIEW -->
+<div id="viewList">
     <h1>3DS Reddit</h1>
     <input type="text" id="subreddit" value="all" maxlength="50">
     <button type="button" onclick="loadPosts(false)">Refresh Subreddit</button>
-
     <div id="status" class="status">Ready</div>
     <div id="posts"></div>
-    <button type="button" id="nextBtn" onclick="loadPosts(true)">Next Page</button>
+    <button type="button" id="nextBtn" style="display:none;" onclick="loadPosts(true)">Next Page</button>
+</div>
 
-    <script type="text/javascript">
-        /* Set this to your Cloudflare Worker URL (must end with ?url= or handle query) */
-        var WORKER_URL = "https://damp-shape-c392.k-oleg-dd.workers.dev/?url=";
-        var after = "";
-        var loading = false;
+<!-- POST / COMMENTS VIEW -->
+<div id="viewPost">
+    <button type="button" onclick="showList()">< Back to list</button>
+    <div id="postStatus" class="status"></div>
+    <div id="postBody"></div>
+    <h2>Comments</h2>
+    <div id="comments"></div>
+</div>
 
-        function setStatus(msg, isErr) {
-            var el = document.getElementById("status");
-            el.innerHTML = msg;
-            el.className = isErr ? "status err" : "status";
+<!-- FULLSCREEN IMAGE VIEW -->
+<div id="viewImg">
+    <button type="button" onclick="closeImg()">< Close image</button>
+    <div id="imgStatus" class="status">Loading image...</div>
+    <div id="imgWrap">
+        <img id="imgFull" src="" alt="pic" width="400">
+    </div>
+</div>
+
+<script type="text/javascript">
+    var WORKER_URL = "https://damp-shape-c392.k-oleg-dd.workers.dev/?url=";
+    var after = "";
+    var loading = false;
+    var postsCache = [];
+    var lastView = "list";
+    var currentPost = null;
+
+    function $(id) { return document.getElementById(id); }
+
+    function setStatus(msg, isErr) {
+        var el = $("status");
+        if (!el) return;
+        el.innerHTML = msg;
+        el.className = isErr ? "status err" : "status";
+    }
+
+    function showOnly(which) {
+        $("viewList").style.display = which === "list" ? "block" : "none";
+        $("viewPost").style.display = which === "post" ? "block" : "none";
+        $("viewImg").style.display = which === "img" ? "block" : "none";
+        if (which !== "img") lastView = which;
+    }
+
+    function showList() {
+        showOnly("list");
+        window.scrollTo(0, 0);
+    }
+
+    function esc(s) {
+        if (s === null || s === undefined) return "";
+        return String(s)
+            .replace(/&/g, "&")
+            .replace(/</g, "<")
+            .replace(/>/g, ">")
+            .replace(/"/g, """);
+    }
+
+    function proxyImg(src, w, q) {
+        if (!src) return "";
+        src = src.replace(/&/g, "&");
+        return WORKER_URL + encodeURIComponent(src) + "&type=img&w=" + (w || 64) + "&q=" + (q || 40);
+    }
+
+    function getBigImageUrl(p) {
+        if (!p) return "";
+        try {
+            if (p.preview && p.preview.images && p.preview.images[0]) {
+                var im = p.preview.images[0];
+                if (im.source && im.source.url) return im.source.url.replace(/&/g, "&");
+            }
+        } catch (e) {}
+        if (p.url_overridden_by_dest && /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(p.url_overridden_by_dest)) {
+            return p.url_overridden_by_dest;
         }
+        if (p.url && /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(p.url)) {
+            return p.url;
+        }
+        if (p.thumbnail && p.thumbnail.indexOf("http") === 0) return p.thumbnail;
+        return "";
+    }
 
-        function loadPosts(isNext) {
-            if (loading) return;
-            loading = true;
+    function hasImage(p) {
+        return !!getBigImageUrl(p);
+    }
 
-            var sub = document.getElementById("subreddit").value || "all";
-            sub = sub.replace(/[^a-zA-Z0-9_\-]/g, "");
-            if (!sub) sub = "all";
-
-            var postsDiv = document.getElementById("posts");
-            setStatus("Loading...");
-            if (!isNext) {
-                postsDiv.innerHTML = "";
-                after = "";
-            }
-
-            var redditUrl = "https://www.reddit.com/r/" + sub + ".json?limit=5&raw_json=1";
-            if (after) {
-                redditUrl += "&after=" + encodeURIComponent(after);
-            }
-
-            var finalUrl = WORKER_URL + encodeURIComponent(redditUrl);
-
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", finalUrl, true);
-            xhr.timeout = 25000;
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState !== 4) return;
-                loading = false;
-
-                if (xhr.status === 200) {
-                    try {
-                        var json = JSON.parse(xhr.responseText);
-                        if (!json || !json.data || !json.data.children) {
-                            setStatus("Bad response", true);
-                            return;
-                        }
-                        after = json.data.after || "";
-                        render(json);
-                        setStatus("r/" + sub);
-                        document.getElementById("nextBtn").style.display = after ? "block" : "none";
-                    } catch (e) {
-                        setStatus("Parse error", true);
-                    }
-                } else {
-                    setStatus("Error " + xhr.status, true);
+    function xhrGet(url, onOk, onFail) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.timeout = 30000;
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState !== 4) return;
+            if (xhr.status === 200) {
+                try {
+                    onOk(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    if (onFail) onFail("Parse error");
                 }
-            };
-
-            xhr.ontimeout = function () {
-                loading = false;
-                setStatus("Timeout", true);
-            };
-
-            xhr.onerror = function () {
-                loading = false;
-                setStatus("Network error", true);
-            };
-
-            try {
-                xhr.send();
-            } catch (e) {
-                loading = false;
-                setStatus("XHR failed", true);
+            } else {
+                if (onFail) onFail("Error " + xhr.status);
             }
-        }
-
-        function esc(s) {
-            if (!s) return "";
-            return String(s)
-                .replace(/&/g, "&")
-                .replace(/</g, "<")
-                .replace(/>/g, ">")
-                .replace(/"/g, """);
-        }
-
-        function render(json) {
-            var postsDiv = document.getElementById("posts");
-            var children = json.data.children;
-
-            for (var i = 0; i < children.length; i++) {
-                var p = children[i].data;
-                if (!p) continue;
-
-                var div = document.createElement("div");
-                div.className = "post";
-
-                var imgTag = "";
-                var thumb = p.thumbnail;
-                if (thumb && thumb.indexOf("http") === 0 && thumb.indexOf("self") === -1) {
-                    /* type=img tells worker to downscale to tiny JPEG */
-                    var proxiedImg = WORKER_URL + encodeURIComponent(thumb) + "&type=img&w=64&q=40";
-                    imgTag = '<img src="' + proxiedImg + '" class="thumb" width="64" height="64" alt="">';
-                }
-
-                var link = "https://old.reddit.com" + (p.permalink || "");
-                div.innerHTML =
-                    imgTag +
-                    '<a class="title" href="' + esc(link) + '">' + esc(p.title) + "</a>" +
-                    '<div class="meta">r/' + esc(p.subreddit) + " | " + (p.score || 0) + " pts</div>";
-
-                postsDiv.appendChild(div);
-            }
-        }
-
-        window.onload = function () {
-            loadPosts(false);
         };
-    </script>
+        xhr.ontimeout = function () { if (onFail) onFail("Timeout"); };
+        xhr.onerror = function () { if (onFail) onFail("Network error"); };
+        try { xhr.send(); } catch (e) { if (onFail) onFail("XHR failed"); }
+    }
+
+    function loadPosts(isNext) {
+        if (loading) return;
+        loading = true;
+
+        var sub = $("subreddit").value || "all";
+        sub = sub.replace(/[^a-zA-Z0-9_\-]/g, "");
+        if (!sub) sub = "all";
+
+        setStatus("Loading...");
+        if (!isNext) {
+            $("posts").innerHTML = "";
+            postsCache = [];
+            after = "";
+        }
+
+        var redditUrl = "https://www.reddit.com/r/" + sub + ".json?limit=5&raw_json=1";
+        if (after) redditUrl += "&after=" + encodeURIComponent(after);
+
+        xhrGet(WORKER_URL + encodeURIComponent(redditUrl), function (json) {
+            loading = false;
+            if (!json || !json.data || !json.data.children) {
+                setStatus("Bad response", true);
+                return;
+            }
+            after = json.data.after || "";
+            renderList(json);
+            setStatus("r/" + sub + " — tap title for comments, tap pic for full image");
+            $("nextBtn").style.display = after ? "block" : "none";
+        }, function (err) {
+            loading = false;
+            setStatus(err, true);
+        });
+    }
+
+    function renderList(json) {
+        var postsDiv = $("posts");
+        var children = json.data.children;
+        var startIdx = postsCache.length;
+
+        for (var i = 0; i < children.length; i++) {
+            var p = children[i].data;
+            if (!p) continue;
+            var idx = postsCache.length;
+            postsCache.push(p);
+
+            var div = document.createElement("div");
+            div.className = "post";
+
+            var imgHtml = "";
+            if (hasImage(p) && p.thumbnail && p.thumbnail.indexOf("http") === 0) {
+                imgHtml =
+                    '<img src="' + proxyImg(p.thumbnail, 64, 40) +
+                    '" class="thumb" width="64" height="64" alt="" ' +
+                    'onclick="openImgFromCache(' + idx + ')">';
+            }
+
+            div.innerHTML =
+                imgHtml +
+                '<a class="title" href="javascript:void(0)" onclick="openPost(' + idx + ')">' +
+                esc(p.title) + "</a>" +
+                '<div class="meta">r/' + esc(p.subreddit) + " | " +
+                (p.score || 0) + " pts | " + (p.num_comments || 0) + " comments</div>";
+
+            postsDiv.appendChild(div);
+        }
+    }
+
+    function openPost(idx) {
+        var p = postsCache[idx];
+        if (!p) return;
+        currentPost = p;
+        showOnly("post");
+        window.scrollTo(0, 0);
+
+        $("postStatus").innerHTML = "Loading comments...";
+        $("postStatus").className = "status";
+        $("comments").innerHTML = "";
+
+        var html = "<h2>" + esc(p.title) + "</h2>";
+        html += '<div class="meta">r/' + esc(p.subreddit) + " | u/" +
+            esc(p.author) + " | " + (p.score || 0) + " pts</div>";
+
+        var big = getBigImageUrl(p);
+        if (big) {
+            html +=
+                '<img class="post-img" src="' + proxyImg(big, 320, 55) +
+                '" alt="" width="320" onclick="openImgUrl(\'' +
+                esc(big).replace(/'/g, "") + '\')">';
+            html += '<div class="meta">Tap image for bigger</div>';
+        }
+
+        if (p.selftext) {
+            var st = p.selftext;
+            if (st.length > 2000) st = st.substring(0, 2000) + "...";
+            html += '<div class="selftext">' + esc(st) + "</div>";
+        }
+
+        $("postBody").innerHTML = html;
+
+        var sub = p.subreddit || "all";
+        var id = p.id;
+        if (!id) {
+            $("postStatus").innerHTML = "No post id";
+            return;
+        }
+
+        var cUrl =
+            "https://www.reddit.com/r/" + encodeURIComponent(sub) +
+            "/comments/" + encodeURIComponent(id) +
+            ".json?limit=25&depth=2&raw_json=1";
+
+        xhrGet(WORKER_URL + encodeURIComponent(cUrl), function (data) {
+            $("postStatus").innerHTML = "Comments";
+            renderComments(data);
+        }, function (err) {
+            $("postStatus").innerHTML = err;
+            $("postStatus").className = "status err";
+        });
+    }
+
+    function renderComments(data) {
+        var box = $("comments");
+        box.innerHTML = "";
+
+        if (!data || !data[1] || !data[1].data || !data[1].data.children) {
+            box.innerHTML = '<div class="meta">No comments</div>';
+            return;
+        }
+
+        var kids = data[1].data.children;
+        var count = 0;
+        for (var i = 0; i < kids.length && count < 30; i++) {
+            var c = kids[i];
+            if (!c || c.kind !== "t1" || !c.data) continue;
+            count++;
+            appendComment(box, c.data, 0);
+
+            // one level of replies
+            try {
+                var reps = c.data.replies;
+                if (reps && reps.data && reps.data.children) {
+                    var rk = reps.data.children;
+                    for (var j = 0; j < rk.length && j < 5; j++) {
+                        if (rk[j].kind === "t1" && rk[j].data) {
+                            appendComment(box, rk[j].data, 1);
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
+        if (count === 0) {
+            box.innerHTML = '<div class="meta">No comments</div>';
+        }
+    }
+
+    function appendComment(box, d, depth) {
+        var div = document.createElement("div");
+        div.className = "comment";
+        if (depth) div.style.marginLeft = "12px";
+
+        var body = d.body || "";
+        if (body.length > 800) body = body.substring(0, 800) + "...";
+
+        div.innerHTML =
+            '<div class="c-author">u/' + esc(d.author) + "</div>" +
+            '<div class="c-body">' + esc(body) + "</div>" +
+            '<div class="c-meta">' + (d.score || 0) + " pts</div>";
+
+        box.appendChild(div);
+    }
+
+    function openImgFromCache(idx) {
+        var p = postsCache[idx];
+        if (!p) return;
+        var u = getBigImageUrl(p);
+        if (u) openImgUrl(u);
+    }
+
+    function openImgUrl(rawUrl) {
+        if (!rawUrl) return;
+        rawUrl = String(rawUrl).replace(/&/g, "&");
+        showOnly("img");
+        window.scrollTo(0, 0);
+
+        $("imgStatus").innerHTML = "Loading image...";
+        $("imgStatus").className = "status";
+
+        var img = $("imgFull");
+        img.onload = function () {
+            $("imgStatus").innerHTML = "Tap Close to go back";
+        };
+        img.onerror = function () {
+            $("imgStatus").innerHTML = "Image failed";
+            $("imgStatus").className = "status err";
+        };
+        // Bigger for 3DS screen (~400px wide), still compressed
+        img.src = proxyImg(rawUrl, 400, 60);
+    }
+
+    function closeImg() {
+        showOnly(lastView || "list");
+        window.scrollTo(0, 0);
+    }
+
+    window.onload = function () {
+        showOnly("list");
+        loadPosts(false);
+    };
+</script>
 </body>
 </html>
