@@ -2,82 +2,206 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=400, initial-scale=1.0">
+    <meta name="viewport" content="width=400, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>3DS Reddit Reader</title>
-    <style>
-        body { font-family: sans-serif; background: #000; color: #0f0; margin: 0; padding: 10px; }
-        input, button { background: #111; color: #0f0; border: 1px solid #0f0; padding: 10px; margin: 5px 0; width: 100%; font-size: 16px; }
-        button { background: #004400; font-weight: bold; }
-        .post { border-bottom: 1px solid #003300; padding: 10px 0; overflow: hidden; clear: both; }
-        .title { color: #0ff; font-weight: bold; font-size: 14px; text-decoration: none; display: block; }
-        .thumb { float: left; margin: 0 10px 5px 0; width: 80px; height: 80px; object-fit: cover; border: 1px solid #333; }
-        .meta { color: #888; font-size: 11px; }
-        .status { color: #ff0; text-align: center; font-size: 13px; margin: 10px 0; }
+    <style type="text/css">
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #000000;
+            color: #00ff00;
+            margin: 0;
+            padding: 8px;
+            font-size: 14px;
+        }
+        h1 {
+            font-size: 18px;
+            margin: 0 0 8px 0;
+            color: #00ff00;
+        }
+        input, button {
+            background: #111111;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px;
+            margin: 4px 0;
+            width: 98%;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #004400;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .post {
+            border-bottom: 1px solid #003300;
+            padding: 8px 0;
+            overflow: hidden;
+            clear: both;
+        }
+        .title {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 13px;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .thumb {
+            float: left;
+            margin: 0 8px 4px 0;
+            width: 64px;
+            height: 64px;
+            border: 1px solid #333333;
+        }
+        .meta {
+            color: #888888;
+            font-size: 11px;
+        }
+        .status {
+            color: #ffff00;
+            text-align: center;
+            font-size: 13px;
+            margin: 8px 0;
+        }
+        .err {
+            color: #ff4444;
+        }
+        #nextBtn {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h1>🕹️ 3DS Reddit</h1>
-    <input type="text" id="subreddit" value="all">
-    <button onclick="loadPosts(false)">Refresh Subreddit</button>
-    
+    <h1>3DS Reddit</h1>
+    <input type="text" id="subreddit" value="all" maxlength="50">
+    <button type="button" onclick="loadPosts(false)">Refresh Subreddit</button>
+
     <div id="status" class="status">Ready</div>
     <div id="posts"></div>
-    <button id="nextBtn" style="display:none;" onclick="loadPosts(true)">Next Page ➡️</button>
+    <button type="button" id="nextBtn" onclick="loadPosts(true)">Next Page</button>
 
     <script type="text/javascript">
+        /* Set this to your Cloudflare Worker URL (must end with ?url= or handle query) */
         var WORKER_URL = "https://damp-shape-c392.k-oleg-dd.workers.dev/?url=";
         var after = "";
+        var loading = false;
+
+        function setStatus(msg, isErr) {
+            var el = document.getElementById("status");
+            el.innerHTML = msg;
+            el.className = isErr ? "status err" : "status";
+        }
 
         function loadPosts(isNext) {
-            var sub = document.getElementById('subreddit').value || 'all';
-            var status = document.getElementById('status');
-            var postsDiv = document.getElementById('posts');
-            
-            status.innerHTML = "Loading...";
-            if (!isNext) { postsDiv.innerHTML = ""; after = ""; }
+            if (loading) return;
+            loading = true;
 
-            var redditUrl = "https://www.reddit.com/r/" + sub + ".json?limit=5&after=" + after;
+            var sub = document.getElementById("subreddit").value || "all";
+            sub = sub.replace(/[^a-zA-Z0-9_\-]/g, "");
+            if (!sub) sub = "all";
+
+            var postsDiv = document.getElementById("posts");
+            setStatus("Loading...");
+            if (!isNext) {
+                postsDiv.innerHTML = "";
+                after = "";
+            }
+
+            var redditUrl = "https://www.reddit.com/r/" + sub + ".json?limit=5&raw_json=1";
+            if (after) {
+                redditUrl += "&after=" + encodeURIComponent(after);
+            }
+
             var finalUrl = WORKER_URL + encodeURIComponent(redditUrl);
 
             var xhr = new XMLHttpRequest();
             xhr.open("GET", finalUrl, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    var json = JSON.parse(xhr.responseText);
-                    after = json.data.after;
-                    render(json);
-                    status.innerHTML = "r/" + sub;
-                    document.getElementById('nextBtn').style.display = "block";
+            xhr.timeout = 25000;
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) return;
+                loading = false;
+
+                if (xhr.status === 200) {
+                    try {
+                        var json = JSON.parse(xhr.responseText);
+                        if (!json || !json.data || !json.data.children) {
+                            setStatus("Bad response", true);
+                            return;
+                        }
+                        after = json.data.after || "";
+                        render(json);
+                        setStatus("r/" + sub);
+                        document.getElementById("nextBtn").style.display = after ? "block" : "none";
+                    } catch (e) {
+                        setStatus("Parse error", true);
+                    }
+                } else {
+                    setStatus("Error " + xhr.status, true);
                 }
             };
-            xhr.send();
+
+            xhr.ontimeout = function () {
+                loading = false;
+                setStatus("Timeout", true);
+            };
+
+            xhr.onerror = function () {
+                loading = false;
+                setStatus("Network error", true);
+            };
+
+            try {
+                xhr.send();
+            } catch (e) {
+                loading = false;
+                setStatus("XHR failed", true);
+            }
+        }
+
+        function esc(s) {
+            if (!s) return "";
+            return String(s)
+                .replace(/&/g, "&")
+                .replace(/</g, "<")
+                .replace(/>/g, ">")
+                .replace(/"/g, """);
         }
 
         function render(json) {
-            var postsDiv = document.getElementById('posts');
+            var postsDiv = document.getElementById("posts");
             var children = json.data.children;
 
             for (var i = 0; i < children.length; i++) {
                 var p = children[i].data;
-                var div = document.createElement('div');
-                div.className = 'post';
+                if (!p) continue;
 
-                // We pass the image through the worker to keep the 3DS from choking on SSL/Size
+                var div = document.createElement("div");
+                div.className = "post";
+
                 var imgTag = "";
-                if (p.thumbnail && p.thumbnail.indexOf("http") === 0) {
-                    var proxiedImg = WORKER_URL + encodeURIComponent(p.thumbnail) + "&type=img";
-                    imgTag = '<img src="' + proxiedImg + '" class="thumb">';
+                var thumb = p.thumbnail;
+                if (thumb && thumb.indexOf("http") === 0 && thumb.indexOf("self") === -1) {
+                    /* type=img tells worker to downscale to tiny JPEG */
+                    var proxiedImg = WORKER_URL + encodeURIComponent(thumb) + "&type=img&w=64&q=40";
+                    imgTag = '<img src="' + proxiedImg + '" class="thumb" width="64" height="64" alt="">';
                 }
 
-                div.innerHTML = imgTag + 
-                    '<a class="title" href="https://old.reddit.com' + p.permalink + '">' + p.title + '</a>' +
-                    '<div class="meta">r/' + p.subreddit + ' | ' + p.score + ' pts</div>';
-                
+                var link = "https://old.reddit.com" + (p.permalink || "");
+                div.innerHTML =
+                    imgTag +
+                    '<a class="title" href="' + esc(link) + '">' + esc(p.title) + "</a>" +
+                    '<div class="meta">r/' + esc(p.subreddit) + " | " + (p.score || 0) + " pts</div>";
+
                 postsDiv.appendChild(div);
             }
         }
 
-        window.onload = function() { loadPosts(false); };
+        window.onload = function () {
+            loadPosts(false);
+        };
     </script>
 </body>
 </html>
